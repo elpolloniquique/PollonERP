@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:cf": "opennextjs-cloudflare build",
     "start": "next start",
     "test": "vitest run",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
@@ -21,7 +22,8 @@
     "pdf-lib": "^1.17.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tesseract.js": "^7.0.0"
+    "tesseract.js": "^7.0.0",
+    "typescript": "5.8.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.8",
@@ -29,7 +31,6 @@
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
     "tailwindcss": "^4.1.8",
-    "typescript": "5.8.2",
     "vitest": "^3.1.4",
     "wrangler": "^4.157.0"
   }
