@@ -79,7 +79,7 @@ export default function Inicio() {
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 border-t border-[#d5e4e1] p-3 lg:grid-cols-1">
-          <Link className="btn text-center" href="/facturas/nueva">Nueva factura</Link>
+          <Link className="btn text-center" href="/facturas?nueva=1">Nueva factura</Link>
           <Link className="btn text-center" href="/pagos/registrar">Registrar pago</Link>
         </div>
       </section>

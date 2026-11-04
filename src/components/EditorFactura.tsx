@@ -12,7 +12,18 @@ type Linea = CapturaLinea;
 
 const avisoNueva = "Agregue los productos y pulse Grabar. Al grabar, la factura queda guardada y la lista se limpia.";
 
-export function EditorFactura({ facturaId }: { facturaId?: string }) {
+export function EditorFactura({
+  facturaId,
+  variante = "pagina",
+  onCerrar,
+  onGuardado,
+}: {
+  facturaId?: string;
+  variante?: "pagina" | "modal";
+  onCerrar?: () => void;
+  onGuardado?: () => void;
+}) {
+  const esModal = variante === "modal";
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [tolerancia, setTolerancia] = useState(5);
   const [proveedores, setProveedores] = useState<ProveedorOpcion[]>([]);
@@ -356,6 +367,12 @@ export function EditorFactura({ facturaId }: { facturaId?: string }) {
       return;
     }
     setSucio(false);
+    onGuardado?.();
+    if (esModal) {
+      setAviso("Factura grabada. Puede agregar otra o cerrar la ventana.");
+      limpiarOtra();
+      return;
+    }
     limpiarOtra();
     setAviso("Factura grabada. Quedó guardada y la lista se limpió para ingresar otra. Para cambiarla, búsquela y pulse Modificar con su clave.");
   }
@@ -369,10 +386,14 @@ export function EditorFactura({ facturaId }: { facturaId?: string }) {
 
   if (!listo) return <main className="p-4">Cargando factura…</main>;
 
-  return (
-    <div className="flex h-full min-h-0 flex-col p-2 sm:p-3">
-      <section className="marco flex min-h-0 flex-1 flex-col overflow-hidden">
-        <h1 className="titulo-barra text-center">{esNueva ? "Nueva factura" : `Factura ${numero}`}</h1>
+  const cuerpo = (
+      <section className={`marco flex min-h-0 flex-1 flex-col overflow-hidden ${esModal ? "factura-modal-marco" : ""}`}>
+        <div className="titulo-barra flex items-center justify-between gap-2">
+          <span className="flex-1 text-center">{esNueva ? "Nueva factura" : `Factura ${numero}`}</span>
+          {esModal && (
+            <button type="button" className="menu-cerrar !h-8 !w-8 shrink-0" aria-label="Cerrar" onClick={() => { if (salirSinGrabar()) onCerrar?.(); }}>×</button>
+          )}
+        </div>
         {esNueva && (
           <label className="btn m-3 flex w-[calc(100%-1.5rem)] cursor-pointer justify-center sm:inline-flex sm:w-fit">
             Sacar o elegir foto
@@ -475,16 +496,27 @@ export function EditorFactura({ facturaId }: { facturaId?: string }) {
           <button className="btn" onClick={modificar}>Modificar</button>
           <button className="btn btn-peligro" disabled={!puedeEditar} onClick={() => { if (seleccion === null) { setError("Seleccione un producto del detalle."); return; } setLineas(lineas.filter((_, i) => i !== seleccion)); setSeleccion(null); setSucio(true); setRedondeoTocado(false); }}>Eliminar</button>
           <button className="btn" onClick={() => setMostrarObs(true)}>Observaciones</button>
-          <button className="btn" onClick={() => { if (salirSinGrabar()) limpiarOtra(); }}>Nueva factura</button>
+          {esModal ? (
+            <button className="btn" onClick={() => { if (salirSinGrabar()) onCerrar?.(); }}>Cerrar</button>
+          ) : (
+            <button className="btn" onClick={() => { if (salirSinGrabar()) limpiarOtra(); }}>Nueva factura</button>
+          )}
         </div>
-        <div className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-2 border-t border-[#d5e4e1] px-2 py-2 sm:px-3">
-          <button className="btn !min-w-11" disabled={!(orden.length > 0 && indice !== 0)} onClick={() => void mover(0, true)}>«</button>
-          <button className="btn !min-w-11" disabled={!(orden.length > 0 && indice !== 0)} onClick={() => void mover(indice < 0 ? orden.length - 1 : indice - 1, indice < 0)}>‹</button>
-          <p className="truncate text-center text-xs font-semibold sm:text-sm">{posicion}</p>
-          <button className="btn !min-w-11" disabled={!(indice >= 0 && indice < orden.length - 1)} onClick={() => void mover(indice + 1, false)}>›</button>
-          <button className="btn !min-w-11" disabled={!(orden.length > 0 && indice !== orden.length - 1)} onClick={() => void mover(orden.length - 1, true)}>»</button>
-        </div>
+        {!esModal && (
+          <div className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-2 border-t border-[#d5e4e1] px-2 py-2 sm:px-3">
+            <button className="btn !min-w-11" disabled={!(orden.length > 0 && indice !== 0)} onClick={() => void mover(0, true)}>«</button>
+            <button className="btn !min-w-11" disabled={!(orden.length > 0 && indice !== 0)} onClick={() => void mover(indice < 0 ? orden.length - 1 : indice - 1, indice < 0)}>‹</button>
+            <p className="truncate text-center text-xs font-semibold sm:text-sm">{posicion}</p>
+            <button className="btn !min-w-11" disabled={!(indice >= 0 && indice < orden.length - 1)} onClick={() => void mover(indice + 1, false)}>›</button>
+            <button className="btn !min-w-11" disabled={!(orden.length > 0 && indice !== orden.length - 1)} onClick={() => void mover(orden.length - 1, true)}>»</button>
+          </div>
+        )}
       </section>
+  );
+
+  return (
+    <div className={esModal ? "factura-editor-modal" : "flex h-full min-h-0 flex-col p-2 sm:p-3"}>
+      {cuerpo}
       {dialogo && (
         <DialogoProducto
           productos={productos}
@@ -495,7 +527,7 @@ export function EditorFactura({ facturaId }: { facturaId?: string }) {
         />
       )}
       {mostrarObs && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-[#10211f]/35 p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#10211f]/35 p-4">
           <section className="marco w-[420px] max-w-full">
             <h2 className="titulo-barra">Observaciones</h2>
             <div className="space-y-3 p-3">
@@ -509,7 +541,7 @@ export function EditorFactura({ facturaId }: { facturaId?: string }) {
         </div>
       )}
       {pideClave && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-[#10211f]/35 p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#10211f]/35 p-4">
           <section className="marco w-[360px] max-w-full">
             <h2 className="titulo-barra">Confirmar con su clave</h2>
             <div className="space-y-3 p-3">

@@ -589,6 +589,148 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   .tabla-detalle-escritorio { display: block; }
 }
 
+.facturas-panel {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  padding: 12px;
+}
+.facturas-panel-marco {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(18, 20, 28, 0.05);
+}
+.facturas-panel-cuerpo {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+.facturas-tabla-caja { height: 100%; }
+.facturas-tabla th {
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.facturas-cartas {
+  padding: 12px;
+}
+.enlace-factura {
+  border: 0;
+  background: transparent;
+  color: var(--acento);
+  font-weight: 650;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.saldo-rojo { color: #c5364a; font-weight: 700; }
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.estado-pendiente { background: #fff4d6; color: #9a6b00; }
+.estado-parcial { background: #e8eeff; color: #2436f0; }
+.estado-pagado { background: #e4f7ec; color: #0f7a4a; }
+.estado-anulado { background: #eef0f4; color: #5c6478; }
+
+.facturas-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  border-top: 1px solid var(--linea);
+  background: linear-gradient(180deg, #fbfcff 0%, #f4f6fb 100%);
+  padding: 12px;
+}
+.facturas-barra-nav,
+.facturas-barra-filtro,
+.facturas-barra-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.facturas-barra-nav { margin-right: auto; }
+.facturas-registro {
+  min-width: 120px;
+  text-align: center;
+  font-weight: 650;
+  color: var(--tinta);
+}
+.filtro-fecha { min-width: 140px; }
+.barra-ico { min-width: 42px; }
+
+.factura-modal-capa {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(10, 12, 22, 0.48);
+  backdrop-filter: blur(2px);
+}
+.factura-modal {
+  width: min(1100px, 100%);
+  max-height: min(94dvh, 920px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.factura-editor-modal,
+.factura-modal-marco {
+  height: 100%;
+  max-height: min(94dvh, 920px);
+}
+.factura-editor-modal {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+@media (max-width: 900px) {
+  .facturas-panel { padding: 8px; }
+  .facturas-barra {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .facturas-barra-nav,
+  .facturas-barra-filtro,
+  .facturas-barra-acciones {
+    width: 100%;
+  }
+  .facturas-barra-acciones .btn,
+  .facturas-barra-filtro .btn {
+    flex: 1 1 calc(50% - 8px);
+  }
+  .filtro-fecha { min-width: 0; flex: 1 1 calc(50% - 8px); }
+  .factura-modal-capa {
+    padding: 0;
+    align-items: stretch;
+  }
+  .factura-modal,
+  .factura-editor-modal,
+  .factura-modal-marco {
+    width: 100%;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+}
+
 .semaforo-vencida { background: #f8d7da; }
 .semaforo-tres { background: #ffe8cc; }
 .semaforo-siete { background: #d9f5e8; }

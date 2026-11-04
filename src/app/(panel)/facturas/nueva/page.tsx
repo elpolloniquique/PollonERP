@@ -1,7 +1,12 @@
 "use client";
 
-import { EditorFactura } from "@/components/EditorFactura";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function NuevaFactura() {
-  return <EditorFactura />;
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/facturas?nueva=1");
+  }, [router]);
+  return <main className="p-4">Abriendo facturas…</main>;
 }

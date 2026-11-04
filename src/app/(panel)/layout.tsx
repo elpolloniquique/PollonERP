@@ -47,7 +47,7 @@ export default function Panel({ children }: { children: React.ReactNode }) {
   const enlaces: Enlace[] = [
     { href: "/", texto: "Inicio", grupo: "Principal" },
     { href: "/proveedores", texto: "Proveedores", grupo: "Operación" },
-    { href: "/facturas/nueva", texto: "Factura", grupo: "Operación" },
+    { href: "/facturas", texto: "Factura", grupo: "Operación" },
     { href: "/facturas/pendientes", texto: "Pendientes", grupo: "Operación" },
     { href: "/fotos", texto: "Fotos", grupo: "Operación" },
     { href: "/pagos/registrar", texto: "Registrar pago", grupo: "Pagos" },
@@ -60,7 +60,11 @@ export default function Panel({ children }: { children: React.ReactNode }) {
     ...(admin ? [{ href: "/usuarios", texto: "Usuarios", grupo: "Empresa" }] : []),
   ];
   const grupos = [...new Set(enlaces.map((item) => item.grupo))];
-  const activo = (href: string) => (href === "/" ? ruta === "/" : ruta === href || ruta.startsWith(`${href}/`));
+  const activo = (href: string) => {
+    if (href === "/") return ruta === "/";
+    if (href === "/facturas") return ruta === "/facturas" || ruta === "/facturas/nueva" || /^\/facturas\/[0-9a-f-]{36}$/i.test(ruta);
+    return ruta === href || ruta.startsWith(`${href}/`);
+  };
   const tituloActual = enlaces.find((item) => activo(item.href))?.texto ?? "Panel";
 
   function cerrarSesion() {

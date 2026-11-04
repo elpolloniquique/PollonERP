@@ -178,7 +178,7 @@ export default function Pendientes() {
             <button type="button" className="btn btn-angosto" disabled={menosDetenido || zoom === 0} onClick={() => setZoom(zoom - 1)}>−</button>
             <button type="button" className="btn btn-angosto" disabled={zoom === ALTOS.length - 1} onClick={() => setZoom(zoom + 1)}>+</button>
           </div>
-          <a className="btn btn-accion" href="/facturas/nueva">Nueva factura</a>
+          <a className="btn btn-accion" href="/facturas?nueva=1">Nueva factura</a>
           <a className="btn btn-accion" href="/pagos/registrar">Registrar pago</a>
           <button
             type="button"
