@@ -370,16 +370,16 @@ export function EditorFactura({ facturaId }: { facturaId?: string }) {
   if (!listo) return <main className="p-4">Cargando factura…</main>;
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-3">
-      <section className="marco flex min-h-0 flex-1 flex-col">
+    <div className="flex h-full min-h-0 flex-col p-2 sm:p-3">
+      <section className="marco flex min-h-0 flex-1 flex-col overflow-hidden">
         <h1 className="titulo-barra text-center">{esNueva ? "Nueva factura" : `Factura ${numero}`}</h1>
         {esNueva && (
-          <label className="btn m-3 inline-flex w-fit cursor-pointer">
+          <label className="btn m-3 flex w-[calc(100%-1.5rem)] cursor-pointer justify-center sm:inline-flex sm:w-fit">
             Sacar o elegir foto
             <input className="hidden" type="file" accept="image/*" capture="environment" onChange={(e) => { const archivo = e.target.files?.[0]; if (archivo) void leerFoto(archivo); }} />
           </label>
         )}
-        <div className="grid gap-3 border-b border-[#d5e4e1] p-3 md:grid-cols-[180px_140px_1fr_1fr_1fr]">
+        <div className="grid gap-3 border-b border-[#d5e4e1] p-3 sm:grid-cols-2 lg:grid-cols-[180px_140px_1fr_1fr_1fr]">
           <label className="campo"><span className="etiqueta">Proveedor</span>
             <select disabled={!esNueva} value={proveedorId} onChange={(e) => aplicarProveedor(e.target.value)}>
               <option value="">Seleccione</option>
@@ -395,45 +395,69 @@ export function EditorFactura({ facturaId }: { facturaId?: string }) {
           <label className="campo"><span className="etiqueta">Fecha de emisión</span>
             <input disabled type="date" value={emision} />
           </label>
-          <label className="campo"><span className="etiqueta">Fecha de vencimiento</span>
+          <label className="campo sm:col-span-2 lg:col-span-1"><span className="etiqueta">Fecha de vencimiento</span>
             <input disabled type="date" value={vencimiento} title="Se calcula con los días de crédito del proveedor" />
           </label>
         </div>
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="bg-[#2436F0] py-1.5 text-center font-semibold text-white">Detalle del documento</div>
           <div className="min-h-0 flex-1 overflow-auto bg-white">
-            <table className="tabla tabla-detalle">
-              <thead>
-                <tr>
-                  <th>Código</th><th>Artículo</th><th>IVA</th><th>Unidad Kardex</th><th>Cantidad</th><th>Precio</th><th>Precio total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {calculo.lineas.map((linea, i) => (
-                  <tr key={`${lineas[i].codigo}-${i}`} className={seleccion === i ? "elegida" : ""} onClick={() => setSeleccion(i)} onDoubleClick={() => { setSeleccion(i); if (puedeEditar) setDialogo("modificar"); }}>
-                    <td>{lineas[i].codigo}</td>
-                    <td>{lineas[i].nombre}</td>
-                    <td>{formatoEntero(linea.ivaLinea)}</td>
-                    <td>{lineas[i].unidad}</td>
-                    <td>{formatoDetalle(linea.cantidad)}</td>
-                    <td>{formatoEntero(linea.precioNetoUnitario)}</td>
-                    <td>{formatoEntero(linea.totalLinea)}</td>
+            <div className="tabla-scroll tabla-detalle-escritorio">
+              <table className="tabla tabla-detalle min-w-[720px]">
+                <thead>
+                  <tr>
+                    <th>Código</th><th>Artículo</th><th>IVA</th><th>Unidad Kardex</th><th>Cantidad</th><th>Precio</th><th>Precio total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {calculo.lineas.map((linea, i) => (
+                    <tr key={`${lineas[i].codigo}-${i}`} className={seleccion === i ? "elegida" : ""} onClick={() => setSeleccion(i)} onDoubleClick={() => { setSeleccion(i); if (puedeEditar) setDialogo("modificar"); }}>
+                      <td>{lineas[i].codigo}</td>
+                      <td>{lineas[i].nombre}</td>
+                      <td>{formatoEntero(linea.ivaLinea)}</td>
+                      <td>{lineas[i].unidad}</td>
+                      <td>{formatoDetalle(linea.cantidad)}</td>
+                      <td>{formatoEntero(linea.precioNetoUnitario)}</td>
+                      <td>{formatoEntero(linea.totalLinea)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="factura-lineas-movil">
+              {calculo.lineas.length === 0 && <p className="text-[#6b7289]">Sin productos. Pulse Agregar.</p>}
+              {calculo.lineas.map((linea, i) => (
+                <button
+                  key={`${lineas[i].codigo}-${i}`}
+                  type="button"
+                  className={`factura-linea-carta ${seleccion === i ? "elegida" : ""}`}
+                  onClick={() => setSeleccion(i)}
+                  onDoubleClick={() => { setSeleccion(i); if (puedeEditar) setDialogo("modificar"); }}
+                >
+                  <div className="factura-linea-titulo">
+                    <span>{lineas[i].nombre}</span>
+                    <span>{formatoPeso(linea.totalLinea)}</span>
+                  </div>
+                  <p className="factura-linea-meta">{lineas[i].codigo} · {lineas[i].unidad} · Cant. {formatoDetalle(linea.cantidad)}</p>
+                  <div className="factura-linea-montos">
+                    <span>Neto unit. {formatoEntero(linea.precioNetoUnitario)}</span>
+                    <span>IVA {formatoEntero(linea.ivaLinea)}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-          <p className="border-t border-[#d5e4e1] px-3 py-1 text-[#2436F0]">{aviso}</p>
+          <p className="border-t border-[#d5e4e1] px-3 py-2 text-[#2436F0]">{aviso}</p>
         </div>
-        <div className="grid items-end gap-3 border-y border-[#d5e4e1] bg-white px-3 py-2 md:grid-cols-[150px_160px_180px_1fr]">
+        <div className="grid grid-cols-2 items-end gap-3 border-y border-[#d5e4e1] bg-white px-3 py-3 sm:grid-cols-4">
           <Total etiqueta="SUBTOTAL" valor={formatoEntero(calculo.netoCalculado)} />
           <Total etiqueta="IVA" valor={formatoEntero(calculo.ivaCalculado)} />
           <div className="text-center">
             <p className="text-[11px] text-[#5E6E6C]">REDONDEO</p>
             <div className="mt-1 flex items-center justify-center gap-1">
-              <button className="btn h-[22px] w-[22px] px-0" disabled={!puedeEditar} onClick={() => { setRedondeoTocado(true); setRedondeoTexto(formatoDetalle(ajuste - 1)); setSucio(true); }}>−</button>
+              <button className="btn !min-h-9 !w-9 !px-0" disabled={!puedeEditar} onClick={() => { setRedondeoTocado(true); setRedondeoTexto(formatoDetalle(ajuste - 1)); setSucio(true); }}>−</button>
               <input className="w-16 text-center" disabled={!puedeEditar} value={redondeoVisible} onChange={(e) => { setRedondeoTocado(true); setRedondeoTexto(e.target.value); setSucio(true); setConfirmaTolerancia(false); }} />
-              <button className="btn h-[22px] w-[22px] px-0" disabled={!puedeEditar} onClick={() => { setRedondeoTocado(true); setRedondeoTexto(formatoDetalle(ajuste + 1)); setSucio(true); }}>+</button>
+              <button className="btn !min-h-9 !w-9 !px-0" disabled={!puedeEditar} onClick={() => { setRedondeoTocado(true); setRedondeoTexto(formatoDetalle(ajuste + 1)); setSucio(true); }}>+</button>
             </div>
           </div>
           <div className="text-right">
@@ -445,20 +469,20 @@ export function EditorFactura({ facturaId }: { facturaId?: string }) {
           <label className="flex items-center justify-end gap-2 px-3 pt-2"><input className="w-auto" type="checkbox" checked={confirmaTolerancia} onChange={(e) => setConfirmaTolerancia(e.target.checked)} />Confirmo este total fuera de tolerancia</label>
         )}
         {error && <p className="error mx-3 mt-2">{error}</p>}
-        <div className="grid grid-cols-2 gap-2 p-3 md:grid-cols-6">
+        <div className="factura-acciones grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 md:grid-cols-6">
           <button className="btn" disabled={!puedeEditar} onClick={() => { if (!proveedorId) { setError("Elija primero el proveedor."); return; } if (productos.length === 0) { setError("Este proveedor no tiene productos activos."); return; } setError(""); setDialogo("agregar"); }}>Agregar</button>
           <button className="btn btn-solido" onClick={() => void grabar()}>Grabar</button>
           <button className="btn" onClick={modificar}>Modificar</button>
           <button className="btn btn-peligro" disabled={!puedeEditar} onClick={() => { if (seleccion === null) { setError("Seleccione un producto del detalle."); return; } setLineas(lineas.filter((_, i) => i !== seleccion)); setSeleccion(null); setSucio(true); setRedondeoTocado(false); }}>Eliminar</button>
           <button className="btn" onClick={() => setMostrarObs(true)}>Observaciones</button>
-          <button className="btn" onClick={() => { if (salirSinGrabar()) limpiarOtra(); }}>Agregar nueva factura</button>
+          <button className="btn" onClick={() => { if (salirSinGrabar()) limpiarOtra(); }}>Nueva factura</button>
         </div>
-        <div className="grid grid-cols-[auto_auto_1fr_auto_auto] items-center gap-2 border-t border-[#d5e4e1] px-3 py-2">
-          <button className="btn min-w-12" disabled={!(orden.length > 0 && indice !== 0)} onClick={() => void mover(0, true)}>«</button>
-          <button className="btn min-w-12" disabled={!(orden.length > 0 && indice !== 0)} onClick={() => void mover(indice < 0 ? orden.length - 1 : indice - 1, indice < 0)}>‹</button>
-          <p className="text-center font-semibold">{posicion}</p>
-          <button className="btn min-w-12" disabled={!(indice >= 0 && indice < orden.length - 1)} onClick={() => void mover(indice + 1, false)}>›</button>
-          <button className="btn min-w-12" disabled={!(orden.length > 0 && indice !== orden.length - 1)} onClick={() => void mover(orden.length - 1, true)}>»</button>
+        <div className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-2 border-t border-[#d5e4e1] px-2 py-2 sm:px-3">
+          <button className="btn !min-w-11" disabled={!(orden.length > 0 && indice !== 0)} onClick={() => void mover(0, true)}>«</button>
+          <button className="btn !min-w-11" disabled={!(orden.length > 0 && indice !== 0)} onClick={() => void mover(indice < 0 ? orden.length - 1 : indice - 1, indice < 0)}>‹</button>
+          <p className="truncate text-center text-xs font-semibold sm:text-sm">{posicion}</p>
+          <button className="btn !min-w-11" disabled={!(indice >= 0 && indice < orden.length - 1)} onClick={() => void mover(indice + 1, false)}>›</button>
+          <button className="btn !min-w-11" disabled={!(orden.length > 0 && indice !== orden.length - 1)} onClick={() => void mover(orden.length - 1, true)}>»</button>
         </div>
       </section>
       {dialogo && (

@@ -64,12 +64,12 @@ export default function Inicio() {
   }, []);
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 gap-3 p-3 lg:grid-cols-[260px_minmax(280px,1fr)_minmax(240px,1fr)]">
+    <div className="grid h-full min-h-0 grid-cols-1 gap-3 p-2 sm:p-3 lg:grid-cols-[260px_minmax(280px,1fr)_minmax(240px,1fr)]">
       <section className="marco flex min-h-0 flex-col">
         <div className="min-h-0 flex-1 overflow-auto p-4">
           <img src="/icon.svg" alt="" width={72} height={72} />
           <h1 className="mt-3 text-base font-semibold">{empresa?.nombre_comercial ?? "Empresa"}</h1>
-          <p className="mt-2 leading-5 text-[#3e5552]">
+          <p className="mt-2 break-words leading-5 text-[#3e5552]">
             {empresa?.razon_social}<br />
             {empresa?.rut ? mostrarRut(empresa.rut) : ""}<br />
             {empresa?.giro}<br />
@@ -78,7 +78,7 @@ export default function Inicio() {
             {empresa?.correo}
           </p>
         </div>
-        <div className="flex flex-col gap-2 border-t border-[#d5e4e1] p-3">
+        <div className="grid grid-cols-2 gap-2 border-t border-[#d5e4e1] p-3 lg:grid-cols-1">
           <Link className="btn text-center" href="/facturas/nueva">Nueva factura</Link>
           <Link className="btn text-center" href="/pagos/registrar">Registrar pago</Link>
         </div>
@@ -88,16 +88,16 @@ export default function Inicio() {
           <tr key={aviso.id} className={`semaforo-${aviso.luz}`}>
             <td><span className={`punto punto-${aviso.luz}`} /></td>
             <td>{aviso.proveedor}</td>
-            <td>{aviso.numero}</td>
-            <td>{fechaCorta(aviso.vencimiento)}</td>
-            <td className="text-right">{formatoPeso(aviso.saldo)}</td>
+            <td className="nowrap">{aviso.numero}</td>
+            <td className="nowrap">{fechaCorta(aviso.vencimiento)}</td>
+            <td className="text-right nowrap">{formatoPeso(aviso.saldo)}</td>
           </tr>
         ))}
       </Tabla>
       <Tabla titulo="Últimos pagos registrados" vacio="Todavía no hay pagos registrados.">
         {pagos.map((pago) => (
           <tr key={pago.id}>
-            <td>{fechaCorta(pago.fecha)}</td>
+            <td className="nowrap">{fechaCorta(pago.fecha)}</td>
             <td>{pago.proveedor}</td>
             <td className="text-right">{formatoPeso(pago.monto)}</td>
           </tr>
@@ -113,8 +113,8 @@ function Tabla({ titulo, vacio, children }: { titulo: string; vacio: string; chi
   return (
     <section className="marco flex min-h-[220px] min-w-0 flex-col lg:min-h-0">
       <h2 className="titulo-barra">{titulo}</h2>
-      <div className="min-h-0 flex-1 overflow-auto">
-        <table className="tabla">
+      <div className="tabla-scroll min-h-0 flex-1">
+        <table className="tabla min-w-[480px]">
           <tbody>{hay ? children : <tr><td className="text-[#60716f]">{vacio}</td></tr>}</tbody>
         </table>
       </div>

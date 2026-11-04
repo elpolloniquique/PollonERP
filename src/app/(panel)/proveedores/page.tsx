@@ -36,28 +36,45 @@ export default function Proveedores() {
   const visibles = filas.filter((fila) => (verInactivos || fila.activo) && fila.nombre.toLowerCase().includes(texto.toLowerCase()));
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 p-3">
+    <div className="flex h-full min-h-0 flex-col gap-3 p-2 sm:p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <input className="max-w-xs" placeholder="Buscar" value={texto} onChange={(e) => setTexto(e.target.value)} />
-        <label className="flex items-center gap-2"><input className="w-auto" type="checkbox" checked={verInactivos} onChange={(e) => setVerInactivos(e.target.checked)} />Ver inactivos</label>
-        <Link className="btn ml-auto" href="/proveedores/nuevo">Nuevo proveedor</Link>
+        <input className="min-w-0 flex-1 sm:max-w-xs" placeholder="Buscar" value={texto} onChange={(e) => setTexto(e.target.value)} />
+        <label className="flex items-center gap-2"><input className="w-auto" type="checkbox" checked={verInactivos} onChange={(e) => setVerInactivos(e.target.checked)} />Inactivos</label>
+        <Link className="btn w-full text-center sm:ml-auto sm:w-auto" href="/proveedores/nuevo">Nuevo proveedor</Link>
       </div>
       <div className="marco min-h-0 flex-1 overflow-auto">
-        <table className="tabla">
-          <thead><tr><th>Nombre</th><th>RUT</th><th>Estado</th><th>Rapel</th><th className="text-right">Saldo</th></tr></thead>
-          <tbody>
-            {visibles.length === 0 && <tr><td colSpan={5}>No hay proveedores con este filtro.</td></tr>}
-            {visibles.map((fila) => (
-              <tr key={fila.id} onDoubleClick={() => { window.location.href = `/proveedores/${fila.id}`; }}>
-                <td><Link href={`/proveedores/${fila.id}`}>{fila.nombre}</Link></td>
-                <td>{fila.rut ? mostrarRut(fila.rut) : ""}</td>
-                <td>{fila.activo ? "Activo" : "Inactivo"}</td>
-                <td>{fila.rapel_activo ? "Sí" : "No"}</td>
-                <td className="text-right">{formatoPeso(fila.saldo)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="tabla-scroll escritorio-solo">
+          <table className="tabla min-w-[640px]">
+            <thead><tr><th>Nombre</th><th>RUT</th><th>Estado</th><th>Rapel</th><th className="text-right">Saldo</th></tr></thead>
+            <tbody>
+              {visibles.length === 0 && <tr><td colSpan={5}>No hay proveedores con este filtro.</td></tr>}
+              {visibles.map((fila) => (
+                <tr key={fila.id} onDoubleClick={() => { window.location.href = `/proveedores/${fila.id}`; }}>
+                  <td><Link href={`/proveedores/${fila.id}`}>{fila.nombre}</Link></td>
+                  <td className="nowrap">{fila.rut ? mostrarRut(fila.rut) : ""}</td>
+                  <td>{fila.activo ? "Activo" : "Inactivo"}</td>
+                  <td>{fila.rapel_activo ? "Sí" : "No"}</td>
+                  <td className="text-right nowrap">{formatoPeso(fila.saldo)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="lista-cartas movil-solo !flex p-3">
+          {visibles.length === 0 && <p className="pendientes-vacio">No hay proveedores con este filtro.</p>}
+          {visibles.map((fila) => (
+            <Link key={fila.id} href={`/proveedores/${fila.id}`} className="carta-factura no-underline">
+              <div className="carta-factura-arriba">
+                <span className="carta-factura-numero">{fila.nombre}</span>
+                <span className="carta-factura-estado">{fila.activo ? "Activo" : "Inactivo"}</span>
+              </div>
+              <div className="carta-factura-abajo">
+                <span>{fila.rut ? mostrarRut(fila.rut) : "Sin RUT"}{fila.rapel_activo ? " · Rapel" : ""}</span>
+                <strong>{formatoPeso(fila.saldo)}</strong>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -52,72 +52,144 @@ export default function Pendientes() {
     return () => observador.disconnect();
   }, []);
 
+  const conSaldo = useMemo(() => proveedores.filter((item) => facturas.some((factura) => factura.proveedor_id === item.id)), [proveedores, facturas]);
   const delProveedor = facturas.filter((factura) => factura.proveedor_id === elegido);
   const total = delProveedor.reduce((suma, factura) => suma + Number(factura.saldo), 0);
   const periodo = delProveedor.length
     ? `${fechaCorta(delProveedor[0].fecha_ingreso)} al ${fechaCorta(delProveedor[delProveedor.length - 1].fecha_ingreso)}`
     : hoySantiago();
   const nombre = proveedores.find((item) => item.id === elegido)?.nombre ?? "";
-  const conSaldo = useMemo(() => new Set(facturas.map((factura) => factura.proveedor_id)), [facturas]);
 
   const altoComodo = ALTOS[COMODO] * delProveedor.length + 36;
   const pocas = altoComodo + 220 <= altoZona;
   const cabe = ALTOS[zoom] * delProveedor.length + 36 <= altoZona;
   const menosDetenido = cabe;
 
+  useEffect(() => {
+    if (!elegido && conSaldo.length > 0) setElegido(conSaldo[0].id);
+  }, [conSaldo, elegido]);
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="pendientes">
       <h1 className="titulo-barra shrink-0">Facturas pendientes</h1>
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[176px_minmax(560px,1fr)_148px]">
-        <aside className="overflow-auto border-r border-[#d5e4e1] bg-white">
-          {proveedores.filter((item) => conSaldo.has(item.id)).map((item) => (
-            <button key={item.id} className={`block w-full px-3 py-2 text-left ${elegido === item.id ? "bg-[#C9E4FB]" : "hover:bg-[#E7F4F2]"}`} onClick={() => setElegido(item.id)}>{item.nombre}</button>
+
+      <div className="pendientes-chips">
+        {conSaldo.length === 0 && <p className="pendientes-vacio">Sin facturas pendientes.</p>}
+        {conSaldo.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`chip ${elegido === item.id ? "chip-activo" : ""}`}
+            onClick={() => setElegido(item.id)}
+          >
+            {item.nombre}
+          </button>
+        ))}
+      </div>
+
+      <div className="pendientes-cuerpo">
+        <aside className="pendientes-lista">
+          {conSaldo.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`block w-full px-3 py-2 text-left ${elegido === item.id ? "bg-[#C9E4FB]" : "hover:bg-[#E7F4F2]"}`}
+              onClick={() => setElegido(item.id)}
+            >
+              {item.nombre}
+            </button>
           ))}
-          {proveedores.filter((item) => conSaldo.has(item.id)).length === 0 && <p className="p-3 text-[#60716f]">Sin facturas pendientes.</p>}
+          {conSaldo.length === 0 && <p className="p-3 text-[#60716f]">Sin facturas pendientes.</p>}
         </aside>
-        <div ref={zona} className="min-h-0 overflow-hidden p-3">
-          <div className={pocas ? "flex flex-col items-center" : "flex items-start gap-3"}>
-            <div className="w-[560px] max-w-full">
-              <div className="overflow-auto border border-[#d5e4e1] bg-white" style={{ maxHeight: cabe ? undefined : altoZona - 40 }}>
+
+        <div ref={zona} className="pendientes-zona">
+          <article className="tarjeta-resumen movil-solo">
+            <div>
+              <p className="tarjeta-resumen-nombre">{nombre || "Proveedor"}</p>
+              <p className="tarjeta-resumen-periodo">{periodo}</p>
+            </div>
+            <p className="tarjeta-resumen-total">{formatoPeso(total)}</p>
+          </article>
+
+          <div className={pocas ? "pendientes-panel pendientes-panel-centrado" : "pendientes-panel"}>
+            <div className="pendientes-tabla-caja">
+              <div className="tabla-scroll escritorio-solo" style={{ maxHeight: cabe ? undefined : Math.max(altoZona - 40, 180) }}>
                 <table className="tabla" style={{ fontSize: LETRAS[zoom] }}>
-                  <thead><tr><th>Fecha</th><th>Factura</th><th className="text-right">Monto</th><th>Estado</th></tr></thead>
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Factura</th>
+                      <th className="text-right">Monto</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
                   <tbody>
                     {delProveedor.map((factura) => (
                       <tr key={factura.id} style={{ height: ALTOS[zoom] }} onDoubleClick={() => { window.location.href = `/facturas/${factura.id}`; }}>
-                        <td>{fechaCorta(factura.fecha_ingreso)}</td>
-                        <td>{factura.numero}</td>
-                        <td className="text-right">{formatoPeso(factura.saldo)}</td>
-                        <td>{estadoVisible(factura.estado, Boolean(factura.con_rapel))}</td>
+                        <td className="nowrap">{fechaCorta(factura.fecha_ingreso)}</td>
+                        <td className="nowrap">{factura.numero}</td>
+                        <td className="text-right nowrap">{formatoPeso(factura.saldo)}</td>
+                        <td className="nowrap">{estadoVisible(factura.estado, Boolean(factura.con_rapel))}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <div className="flex justify-between bg-[#2436F0] px-3 py-2 font-semibold text-white">
-                <span>Total por pagar</span><span>{formatoPeso(total)}</span>
+
+              <div className="lista-cartas movil-solo">
+                {delProveedor.length === 0 && elegido && (
+                  <p className="pendientes-vacio">Este proveedor no tiene saldo pendiente.</p>
+                )}
+                {delProveedor.map((factura) => (
+                  <button
+                    key={factura.id}
+                    type="button"
+                    className="carta-factura"
+                    onClick={() => { window.location.href = `/facturas/${factura.id}`; }}
+                  >
+                    <div className="carta-factura-arriba">
+                      <span className="carta-factura-numero">{factura.numero}</span>
+                      <span className="carta-factura-estado">{estadoVisible(factura.estado, Boolean(factura.con_rapel))}</span>
+                    </div>
+                    <div className="carta-factura-abajo">
+                      <span>{fechaCorta(factura.fecha_ingreso)}</span>
+                      <strong>{formatoPeso(factura.saldo)}</strong>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="pendientes-total">
+                <span>Total por pagar</span>
+                <span>{formatoPeso(total)}</span>
               </div>
             </div>
-            <Tarjeta nombre={nombre} periodo={periodo} total={total} />
+
+            <article className="tarjeta-resumen escritorio-solo">
+              <p className="tarjeta-resumen-nombre">{nombre || "Proveedor"}</p>
+              <p className="tarjeta-resumen-periodo">{periodo}</p>
+              <p className="tarjeta-resumen-total">{formatoPeso(total)}</p>
+            </article>
           </div>
         </div>
-        <aside className="flex flex-col items-center gap-2 border-l border-[#d5e4e1] bg-white p-2">
-          <button className="btn btn-angosto" disabled={menosDetenido || zoom === 0} onClick={() => setZoom(zoom - 1)}>−</button>
-          <button className="btn btn-angosto" disabled={zoom === ALTOS.length - 1} onClick={() => setZoom(zoom + 1)}>+</button>
-          <a className="btn btn-angosto" href="/facturas/nueva">Nueva factura</a>
-          <a className="btn btn-angosto" href="/pagos/registrar">Registrar pago</a>
-          <button className="btn w-[132px] whitespace-normal text-center" disabled={!elegido || delProveedor.length === 0} onClick={() => void copiarReportePendientes(delProveedor.map((factura) => ({ fecha: factura.fecha_ingreso, numero: factura.numero, saldo: Number(factura.saldo), estado: factura.estado })), nombre, periodo, total)}>Enviar reporte por WhatsApp</button>
+
+        <aside className="pendientes-acciones">
+          <div className="acciones-zoom escritorio-solo">
+            <button type="button" className="btn btn-angosto" disabled={menosDetenido || zoom === 0} onClick={() => setZoom(zoom - 1)}>−</button>
+            <button type="button" className="btn btn-angosto" disabled={zoom === ALTOS.length - 1} onClick={() => setZoom(zoom + 1)}>+</button>
+          </div>
+          <a className="btn btn-accion" href="/facturas/nueva">Nueva factura</a>
+          <a className="btn btn-accion" href="/pagos/registrar">Registrar pago</a>
+          <button
+            type="button"
+            className="btn btn-accion btn-whatsapp"
+            disabled={!elegido || delProveedor.length === 0}
+            onClick={() => void copiarReportePendientes(delProveedor.map((factura) => ({ fecha: factura.fecha_ingreso, numero: factura.numero, saldo: Number(factura.saldo), estado: factura.estado })), nombre, periodo, total)}
+          >
+            WhatsApp
+          </button>
         </aside>
       </div>
     </div>
-  );
-}
-
-function Tarjeta({ nombre, periodo, total }: { nombre: string; periodo: string; total: number }) {
-  return (
-    <article className="mt-3 w-[228px] shrink-0 border border-[#d5e4e1] bg-white p-3 lg:mt-0">
-      <p className="font-semibold">{nombre || "Proveedor"}</p>
-      <p className="mt-2 text-[#3e5552]">{periodo}</p>
-      <p className="mt-3 text-lg font-semibold text-[#2436F0]">{formatoPeso(total)}</p>
-    </article>
   );
 }

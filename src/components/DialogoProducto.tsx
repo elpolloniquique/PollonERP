@@ -130,8 +130,8 @@ export function DialogoProducto({
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-[#10211f]/35 p-4">
-      <section className="marco flex max-h-[92dvh] w-[700px] max-w-full flex-col">
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-[#10211f]/45 p-0 sm:items-center sm:p-4">
+      <section className="marco flex h-[96dvh] w-full max-w-full flex-col rounded-b-none sm:h-auto sm:max-h-[92dvh] sm:w-[700px] sm:rounded-[12px]">
         <h2 className="titulo-barra text-center">{modificar ? "Modificar producto" : "Agregar producto"}</h2>
         <div className="min-h-0 flex-1 space-y-3 overflow-auto p-3">
           <label className="campo">
