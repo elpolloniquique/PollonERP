@@ -60,7 +60,7 @@ export default function Proveedores() {
             </tbody>
           </table>
         </div>
-        <div className="lista-cartas movil-solo !flex p-3">
+        <div className="lista-cartas movil-solo p-3">
           {visibles.length === 0 && <p className="pendientes-vacio">No hay proveedores con este filtro.</p>}
           {visibles.map((fila) => (
             <Link key={fila.id} href={`/proveedores/${fila.id}`} className="carta-factura no-underline">

@@ -117,7 +117,7 @@ export default function RegistrarPago() {
                 </tbody>
               </table>
             </div>
-            <div className="lista-cartas movil-solo !flex">
+            <div className="lista-cartas movil-solo">
               {facturas.length === 0 && <p className="pendientes-vacio">Elija un proveedor para ver sus facturas.</p>}
               {facturas.map((factura) => {
                 const marcada = marcadas.includes(factura.id);

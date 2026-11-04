@@ -306,8 +306,10 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 
 .nowrap { white-space: nowrap; }
 .tabla-scroll { overflow: auto; -webkit-overflow-scrolling: touch; }
-.movil-solo { display: none; }
+/* En PC solo tabla; en celular solo cartas. !important evita que otras clases las muestren juntas. */
+.movil-solo { display: none !important; }
 .escritorio-solo { display: block; }
+.acciones-zoom.escritorio-solo { display: flex; }
 
 .pendientes {
   display: flex;
@@ -414,7 +416,6 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .tarjeta-resumen-periodo { margin: 8px 0 0; color: #5c6478; font-size: 12px; }
 .tarjeta-resumen-total { margin: 12px 0 0; color: var(--acento); font-size: 18px; font-weight: 700; }
 .lista-cartas {
-  display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 4px 0 10px;
@@ -507,8 +508,9 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   }
   .menu-capa { display: block; }
   .grilla-campos { grid-template-columns: 1fr; }
-  .movil-solo { display: flex; }
   .escritorio-solo { display: none !important; }
+  .movil-solo { display: block !important; }
+  .lista-cartas.movil-solo { display: flex !important; }
   .shell-main { overflow: auto; }
 
   body { font-size: 14px; }
@@ -542,14 +544,13 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   .pendientes-tabla-caja { width: 100%; }
   .tarjeta-resumen.movil-solo {
     width: 100%;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 10px;
   }
   .tarjeta-resumen-total { margin: 0; font-size: 17px; }
-  .lista-cartas.movil-solo { display: flex; }
   .pendientes-acciones {
     flex-direction: row;
     flex-wrap: wrap;
