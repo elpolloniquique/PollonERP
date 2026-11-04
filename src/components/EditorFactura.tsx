@@ -387,110 +387,128 @@ export function EditorFactura({
   if (!listo) return <main className="p-4">Cargando factura…</main>;
 
   const cuerpo = (
-      <section className={`marco flex min-h-0 flex-1 flex-col overflow-hidden ${esModal ? "factura-modal-marco" : ""}`}>
-        <div className="titulo-barra flex items-center justify-between gap-2">
-          <span className="flex-1 text-center">{esNueva ? "Nueva factura" : `Factura ${numero}`}</span>
+      <section className={`ed-factura ${esModal ? "ed-factura-modal factura-modal-marco" : "marco"} flex min-h-0 flex-1 flex-col overflow-hidden`}>
+        <header className="ed-factura-cabeza">
+          <div>
+            <p className="ed-factura-kicker">{esModal ? "Documento" : "Factura"}</p>
+            <h1 className="ed-factura-titulo">{esNueva ? "Nueva factura" : `Factura ${numero}`}</h1>
+          </div>
           {esModal && (
-            <button type="button" className="menu-cerrar !h-8 !w-8 shrink-0" aria-label="Cerrar" onClick={() => { if (salirSinGrabar()) onCerrar?.(); }}>×</button>
+            <button type="button" className="ed-factura-cerrar" aria-label="Cerrar" onClick={() => { if (salirSinGrabar()) onCerrar?.(); }}>×</button>
           )}
-        </div>
-        {esNueva && (
-          <label className="btn m-3 flex w-[calc(100%-1.5rem)] cursor-pointer justify-center sm:inline-flex sm:w-fit">
-            Sacar o elegir foto
-            <input className="hidden" type="file" accept="image/*" capture="environment" onChange={(e) => { const archivo = e.target.files?.[0]; if (archivo) void leerFoto(archivo); }} />
-          </label>
-        )}
-        <div className="grid gap-3 border-b border-[#d5e4e1] p-3 sm:grid-cols-2 lg:grid-cols-[180px_140px_1fr_1fr_1fr]">
-          <label className="campo"><span className="etiqueta">Proveedor</span>
-            <select disabled={!esNueva} value={proveedorId} onChange={(e) => aplicarProveedor(e.target.value)}>
-              <option value="">Seleccione</option>
-              {proveedores.filter((item) => item.activo !== false || item.id === proveedorId).map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
-            </select>
-          </label>
-          <label className="campo"><span className="etiqueta">Número de factura</span>
-            <input disabled={!puedeEditar} value={numero} onChange={(e) => { setNumero(e.target.value); setSucio(true); }} />
-          </label>
-          <label className="campo"><span className="etiqueta">Fecha de ingreso</span>
-            <input disabled={!puedeEditar} type="date" value={ingreso} onChange={(e) => aplicarIngreso(e.target.value)} />
-          </label>
-          <label className="campo"><span className="etiqueta">Fecha de emisión</span>
-            <input disabled type="date" value={emision} />
-          </label>
-          <label className="campo sm:col-span-2 lg:col-span-1"><span className="etiqueta">Fecha de vencimiento</span>
-            <input disabled type="date" value={vencimiento} title="Se calcula con los días de crédito del proveedor" />
-          </label>
-        </div>
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="bg-[#2436F0] py-1.5 text-center font-semibold text-white">Detalle del documento</div>
-          <div className="min-h-0 flex-1 overflow-auto bg-white">
-            <div className="tabla-scroll tabla-detalle-escritorio">
-              <table className="tabla tabla-detalle min-w-[720px]">
-                <thead>
-                  <tr>
-                    <th>Código</th><th>Artículo</th><th>IVA</th><th>Unidad Kardex</th><th>Cantidad</th><th>Precio</th><th>Precio total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {calculo.lineas.map((linea, i) => (
-                    <tr key={`${lineas[i].codigo}-${i}`} className={seleccion === i ? "elegida" : ""} onClick={() => setSeleccion(i)} onDoubleClick={() => { setSeleccion(i); if (puedeEditar) setDialogo("modificar"); }}>
-                      <td>{lineas[i].codigo}</td>
-                      <td>{lineas[i].nombre}</td>
-                      <td>{formatoEntero(linea.ivaLinea)}</td>
-                      <td>{lineas[i].unidad}</td>
-                      <td>{formatoDetalle(linea.cantidad)}</td>
-                      <td>{formatoEntero(linea.precioNetoUnitario)}</td>
-                      <td>{formatoEntero(linea.totalLinea)}</td>
+        </header>
+
+        <div className="ed-factura-scroll">
+          <div className="ed-factura-cabecera">
+            {esNueva && (
+              <label className="ed-foto">
+                Sacar o elegir foto
+                <input className="hidden" type="file" accept="image/*" capture="environment" onChange={(e) => { const archivo = e.target.files?.[0]; if (archivo) void leerFoto(archivo); }} />
+              </label>
+            )}
+            <div className="ed-factura-campos">
+              <label className="campo"><span className="etiqueta">Proveedor</span>
+                <select disabled={!esNueva} value={proveedorId} onChange={(e) => aplicarProveedor(e.target.value)}>
+                  <option value="">Seleccione</option>
+                  {proveedores.filter((item) => item.activo !== false || item.id === proveedorId).map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
+                </select>
+              </label>
+              <label className="campo"><span className="etiqueta">Número de factura</span>
+                <input disabled={!puedeEditar} value={numero} onChange={(e) => { setNumero(e.target.value); setSucio(true); }} />
+              </label>
+              <label className="campo"><span className="etiqueta">Fecha de ingreso</span>
+                <input disabled={!puedeEditar} type="date" value={ingreso} onChange={(e) => aplicarIngreso(e.target.value)} />
+              </label>
+              <label className="campo"><span className="etiqueta">Fecha de emisión</span>
+                <input disabled type="date" value={emision} />
+              </label>
+              <label className="campo"><span className="etiqueta">Fecha de vencimiento</span>
+                <input disabled type="date" value={vencimiento} title="Se calcula con los días de crédito del proveedor" />
+              </label>
+            </div>
+          </div>
+
+          <div className="ed-factura-detalle">
+            <div className="ed-factura-detalle-titulo">
+              <span>Detalle del documento</span>
+              <span className="ed-factura-detalle-cuenta">{calculo.lineas.length} ítem{calculo.lineas.length === 1 ? "" : "s"}</span>
+            </div>
+            <div className="ed-factura-detalle-cuerpo">
+              <div className="tabla-scroll tabla-detalle-escritorio">
+                <table className="tabla tabla-detalle min-w-[720px]">
+                  <thead>
+                    <tr>
+                      <th>Código</th><th>Artículo</th><th>IVA</th><th>Unidad Kardex</th><th>Cantidad</th><th>Precio</th><th>Precio total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {calculo.lineas.length === 0 && (
+                      <tr><td colSpan={7} className="!text-left text-[#6b7289]">Sin productos. Pulse Agregar para incorporar líneas.</td></tr>
+                    )}
+                    {calculo.lineas.map((linea, i) => (
+                      <tr key={`${lineas[i].codigo}-${i}`} className={seleccion === i ? "elegida" : ""} onClick={() => setSeleccion(i)} onDoubleClick={() => { setSeleccion(i); if (puedeEditar) setDialogo("modificar"); }}>
+                        <td>{lineas[i].codigo}</td>
+                        <td>{lineas[i].nombre}</td>
+                        <td>{formatoEntero(linea.ivaLinea)}</td>
+                        <td>{lineas[i].unidad}</td>
+                        <td>{formatoDetalle(linea.cantidad)}</td>
+                        <td>{formatoEntero(linea.precioNetoUnitario)}</td>
+                        <td>{formatoEntero(linea.totalLinea)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="factura-lineas-movil">
+                {calculo.lineas.length === 0 && <p className="ed-factura-vacio">Sin productos. Pulse Agregar.</p>}
+                {calculo.lineas.map((linea, i) => (
+                  <button
+                    key={`${lineas[i].codigo}-${i}`}
+                    type="button"
+                    className={`factura-linea-carta ${seleccion === i ? "elegida" : ""}`}
+                    onClick={() => setSeleccion(i)}
+                    onDoubleClick={() => { setSeleccion(i); if (puedeEditar) setDialogo("modificar"); }}
+                  >
+                    <div className="factura-linea-titulo">
+                      <span>{lineas[i].nombre}</span>
+                      <span>{formatoPeso(linea.totalLinea)}</span>
+                    </div>
+                    <p className="factura-linea-meta">{lineas[i].codigo} · {lineas[i].unidad} · Cant. {formatoDetalle(linea.cantidad)}</p>
+                    <div className="factura-linea-montos">
+                      <span>Neto unit. {formatoEntero(linea.precioNetoUnitario)}</span>
+                      <span>IVA {formatoEntero(linea.ivaLinea)}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="factura-lineas-movil">
-              {calculo.lineas.length === 0 && <p className="text-[#6b7289]">Sin productos. Pulse Agregar.</p>}
-              {calculo.lineas.map((linea, i) => (
-                <button
-                  key={`${lineas[i].codigo}-${i}`}
-                  type="button"
-                  className={`factura-linea-carta ${seleccion === i ? "elegida" : ""}`}
-                  onClick={() => setSeleccion(i)}
-                  onDoubleClick={() => { setSeleccion(i); if (puedeEditar) setDialogo("modificar"); }}
-                >
-                  <div className="factura-linea-titulo">
-                    <span>{lineas[i].nombre}</span>
-                    <span>{formatoPeso(linea.totalLinea)}</span>
-                  </div>
-                  <p className="factura-linea-meta">{lineas[i].codigo} · {lineas[i].unidad} · Cant. {formatoDetalle(linea.cantidad)}</p>
-                  <div className="factura-linea-montos">
-                    <span>Neto unit. {formatoEntero(linea.precioNetoUnitario)}</span>
-                    <span>IVA {formatoEntero(linea.ivaLinea)}</span>
-                  </div>
-                </button>
-              ))}
+            <p className="ed-factura-aviso">{aviso}</p>
+          </div>
+
+          <div className="ed-factura-totales">
+            <Total etiqueta="SUBTOTAL" valor={formatoEntero(calculo.netoCalculado)} />
+            <Total etiqueta="IVA" valor={formatoEntero(calculo.ivaCalculado)} />
+            <div className="ed-total-bloque">
+              <p className="ed-total-etiqueta">REDONDEO</p>
+              <div className="ed-redondeo">
+                <button type="button" className="ed-redondeo-btn" disabled={!puedeEditar} onClick={() => { setRedondeoTocado(true); setRedondeoTexto(formatoDetalle(ajuste - 1)); setSucio(true); }}>−</button>
+                <input className="ed-redondeo-input" disabled={!puedeEditar} value={redondeoVisible} onChange={(e) => { setRedondeoTocado(true); setRedondeoTexto(e.target.value); setSucio(true); setConfirmaTolerancia(false); }} />
+                <button type="button" className="ed-redondeo-btn" disabled={!puedeEditar} onClick={() => { setRedondeoTocado(true); setRedondeoTexto(formatoDetalle(ajuste + 1)); setSucio(true); }}>+</button>
+              </div>
+            </div>
+            <div className="ed-total-bloque ed-total-final">
+              <p className="ed-total-etiqueta">TOTAL</p>
+              <p className="ed-total-valor">{formatoPeso(calculo.totalOficial)}</p>
             </div>
           </div>
-          <p className="border-t border-[#d5e4e1] px-3 py-2 text-[#2436F0]">{aviso}</p>
+
+          {!calculo.dentroDeTolerancia && puedeEditar && (perfil?.rol === "administrador" || perfil?.rol === "superadmin") && (
+            <label className="ed-factura-confirma"><input className="w-auto" type="checkbox" checked={confirmaTolerancia} onChange={(e) => setConfirmaTolerancia(e.target.checked)} />Confirmo este total fuera de tolerancia</label>
+          )}
+          {error && <p className="error ed-factura-error">{error}</p>}
         </div>
-        <div className="grid grid-cols-2 items-end gap-3 border-y border-[#d5e4e1] bg-white px-3 py-3 sm:grid-cols-4">
-          <Total etiqueta="SUBTOTAL" valor={formatoEntero(calculo.netoCalculado)} />
-          <Total etiqueta="IVA" valor={formatoEntero(calculo.ivaCalculado)} />
-          <div className="text-center">
-            <p className="text-[11px] text-[#5E6E6C]">REDONDEO</p>
-            <div className="mt-1 flex items-center justify-center gap-1">
-              <button className="btn !min-h-9 !w-9 !px-0" disabled={!puedeEditar} onClick={() => { setRedondeoTocado(true); setRedondeoTexto(formatoDetalle(ajuste - 1)); setSucio(true); }}>−</button>
-              <input className="w-16 text-center" disabled={!puedeEditar} value={redondeoVisible} onChange={(e) => { setRedondeoTocado(true); setRedondeoTexto(e.target.value); setSucio(true); setConfirmaTolerancia(false); }} />
-              <button className="btn !min-h-9 !w-9 !px-0" disabled={!puedeEditar} onClick={() => { setRedondeoTocado(true); setRedondeoTexto(formatoDetalle(ajuste + 1)); setSucio(true); }}>+</button>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-xs font-bold">TOTAL</p>
-            <p className="border-b border-[#1A1A1A] text-base font-bold">{formatoPeso(calculo.totalOficial)}</p>
-          </div>
-        </div>
-        {!calculo.dentroDeTolerancia && puedeEditar && (perfil?.rol === "administrador" || perfil?.rol === "superadmin") && (
-          <label className="flex items-center justify-end gap-2 px-3 pt-2"><input className="w-auto" type="checkbox" checked={confirmaTolerancia} onChange={(e) => setConfirmaTolerancia(e.target.checked)} />Confirmo este total fuera de tolerancia</label>
-        )}
-        {error && <p className="error mx-3 mt-2">{error}</p>}
-        <div className="factura-acciones grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 md:grid-cols-6">
+
+        <div className="factura-acciones ed-factura-acciones">
           <button className="btn" disabled={!puedeEditar} onClick={() => { if (!proveedorId) { setError("Elija primero el proveedor."); return; } if (productos.length === 0) { setError("Este proveedor no tiene productos activos."); return; } setError(""); setDialogo("agregar"); }}>Agregar</button>
           <button className="btn btn-solido" onClick={() => void grabar()}>Grabar</button>
           <button className="btn" onClick={modificar}>Modificar</button>
@@ -561,9 +579,9 @@ export function EditorFactura({
 
 function Total({ etiqueta, valor }: { etiqueta: string; valor: string }) {
   return (
-    <div className="text-center">
-      <p className="text-[11px] text-[#5E6E6C]">{etiqueta}</p>
-      <p className="border-b border-[#1A1A1A] font-semibold">$ {valor}</p>
+    <div className="ed-total-bloque">
+      <p className="ed-total-etiqueta">{etiqueta}</p>
+      <p className="ed-total-linea">$ {valor}</p>
     </div>
   );
 }

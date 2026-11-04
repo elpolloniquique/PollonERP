@@ -679,13 +679,13 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
-  background: rgba(10, 12, 22, 0.48);
-  backdrop-filter: blur(2px);
+  padding: 18px;
+  background: rgba(12, 14, 24, 0.55);
+  backdrop-filter: blur(6px);
 }
 .factura-modal {
-  width: min(1100px, 100%);
-  max-height: min(94dvh, 920px);
+  width: min(980px, 100%);
+  max-height: min(92dvh, 860px);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -693,12 +693,232 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .factura-editor-modal,
 .factura-modal-marco {
   height: 100%;
-  max-height: min(94dvh, 920px);
+  max-height: min(92dvh, 860px);
 }
 .factura-editor-modal {
   display: flex;
   min-height: 0;
   flex-direction: column;
+}
+
+.ed-factura-modal {
+  border: 1px solid rgba(227, 230, 242, 0.9);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow:
+    0 24px 60px rgba(18, 20, 28, 0.22),
+    0 2px 0 rgba(255, 255, 255, 0.4) inset;
+}
+.ed-factura-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(91, 108, 255, 0.35), transparent 50%),
+    linear-gradient(135deg, #2436f0 0%, #1a28c4 55%, #16206a 100%);
+  color: #fff;
+}
+.ed-factura-kicker {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+.ed-factura-titulo {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.ed-factura-cerrar {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+}
+.ed-factura-cerrar:hover { background: rgba(255, 255, 255, 0.18); }
+.ed-factura-scroll {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: auto;
+  background: linear-gradient(180deg, #f7f8fd 0%, #fff 28%);
+}
+.ed-factura-cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 12px;
+}
+.ed-foto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 40px;
+  border: 1px solid #c9cffb;
+  border-radius: 10px;
+  background: #eceefe;
+  color: #16206a;
+  padding: 8px 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.ed-foto:hover { background: #dde2ff; }
+.ed-factura-campos {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+.ed-factura-campos .etiqueta {
+  color: #5c6478;
+  font-size: 11px;
+  font-weight: 650;
+}
+.ed-factura-campos input,
+.ed-factura-campos select {
+  min-height: 40px;
+  border-radius: 10px;
+  border-color: #d9deef;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(18, 20, 28, 0.02);
+}
+.ed-factura-detalle {
+  display: flex;
+  min-height: 180px;
+  flex: 1;
+  flex-direction: column;
+  margin: 0 16px;
+  overflow: hidden;
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(18, 20, 28, 0.04);
+}
+.ed-factura-detalle-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, #2436f0, #3d4de8);
+  color: #fff;
+  font-weight: 700;
+}
+.ed-factura-detalle-cuenta {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 650;
+}
+.ed-factura-detalle-cuerpo {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  background: #fff;
+}
+.ed-factura-aviso {
+  margin: 0;
+  border-top: 1px solid var(--linea);
+  background: #f4f6ff;
+  color: #2436f0;
+  padding: 10px 14px;
+  font-size: 12px;
+}
+.ed-factura-vacio {
+  margin: 0;
+  padding: 18px 8px;
+  color: #6b7289;
+  text-align: center;
+}
+.ed-factura-totales {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 16px 0;
+  padding: 12px;
+  border: 1px solid var(--linea);
+  border-radius: 14px;
+  background: #fff;
+}
+.ed-total-bloque { text-align: center; }
+.ed-total-etiqueta {
+  margin: 0;
+  color: #6b7289;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+}
+.ed-total-linea {
+  margin: 8px 0 0;
+  border-bottom: 2px solid #12141c;
+  padding-bottom: 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.ed-total-final { text-align: right; }
+.ed-total-valor {
+  margin: 6px 0 0;
+  color: var(--acento);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.ed-redondeo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.ed-redondeo-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #c9cffb;
+  border-radius: 10px;
+  background: #eceefe;
+  color: #16206a;
+  font-weight: 700;
+}
+.ed-redondeo-input {
+  width: 72px;
+  min-height: 34px;
+  text-align: center;
+  border-radius: 10px;
+}
+.ed-factura-confirma {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 10px 16px 0;
+  color: #5c6478;
+  font-size: 12px;
+}
+.ed-factura-error { margin: 10px 16px 0; border-radius: 10px; }
+.ed-factura-acciones {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: auto;
+  border-top: 1px solid var(--linea);
+  background: #fbfcff;
+  padding: 12px 16px 14px;
+}
+.ed-factura-acciones .btn {
+  min-height: 42px;
+  border-radius: 10px;
+  font-weight: 650;
 }
 
 @media (max-width: 900px) {
@@ -729,6 +949,25 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
     height: 100dvh;
     border-radius: 0;
   }
+  .ed-factura-modal { border-radius: 0; box-shadow: none; }
+  .ed-factura-campos { grid-template-columns: 1fr 1fr; }
+  .ed-factura-campos .campo:first-child { grid-column: 1 / -1; }
+  .ed-factura-detalle { margin: 0 10px; min-height: 160px; }
+  .ed-factura-totales {
+    grid-template-columns: 1fr 1fr;
+    margin: 10px;
+  }
+  .ed-total-final { text-align: left; grid-column: 1 / -1; }
+  .ed-factura-acciones {
+    grid-template-columns: 1fr 1fr;
+    padding: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .ed-foto { width: 100%; }
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  .ed-factura-campos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 .semaforo-vencida { background: #f8d7da; }
