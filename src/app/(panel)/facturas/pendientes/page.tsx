@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { EditorFactura } from "@/components/EditorFactura";
 import { fechaCorta, hoySantiago } from "@/lib/fechas";
 import { estadoVisible, formatoPeso } from "@/lib/formato";
-import { pdfPendientesTodos } from "@/lib/exportar";
 import { copiarReportePendientes } from "@/lib/reporteImagen";
 import { Perfil, supabase } from "@/lib/supabase";
 
@@ -19,13 +19,36 @@ type Factura = {
 };
 type Proveedor = { id: string; nombre: string };
 
+type FilaHoja = {
+  id: string;
+  fecha: string;
+  numero: string;
+  saldo: number;
+  estado: string;
+  con_rapel?: boolean;
+};
+
+type GrupoVista = {
+  id: string;
+  proveedor: string;
+  periodo: string;
+  total: number;
+  filas: FilaHoja[];
+};
+
 export default function Pendientes() {
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [facturas, setFacturas] = useState<Factura[]>([]);
   const [elegido, setElegido] = useState("");
   const [busqueda, setBusqueda] = useState("");
-  const [exportando, setExportando] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [buscaFactura, setBuscaFactura] = useState("");
+  const [zoomPdf, setZoomPdf] = useState(1);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [resaltadaId, setResaltadaId] = useState<string | null>(null);
+  const [encontradaId, setEncontradaId] = useState<string | null>(null);
+  const hojaRefs = useRef<Record<string, HTMLElement | null>>({});
+  const filaRefs = useRef<Record<string, HTMLElement | null>>({});
+  const buscaRef = useRef<HTMLInputElement | null>(null);
 
   async function cargar() {
     const { data: usuario } = await supabase().auth.getUser();
@@ -50,10 +73,10 @@ export default function Pendientes() {
     return () => { void supabase().removeChannel(canal); };
   }, []);
 
-  useEffect(() => () => {
-    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-  }, [pdfUrl]);
-
+  const mapaProveedor = useMemo(
+    () => Object.fromEntries(proveedores.map((item) => [item.id, item.nombre])),
+    [proveedores],
+  );
   const conSaldo = useMemo(
     () => proveedores.filter((item) => facturas.some((factura) => factura.proveedor_id === item.id)),
     [proveedores, facturas],
@@ -69,8 +92,42 @@ export default function Pendientes() {
     ? `${fechaCorta(delProveedor[0].fecha_ingreso)} al ${fechaCorta(delProveedor[delProveedor.length - 1].fecha_ingreso)}`
     : hoySantiago();
   const nombre = proveedores.find((item) => item.id === elegido)?.nombre ?? "";
-  const sinFacturas = facturas.length === 0;
   const sinElegido = !elegido || delProveedor.length === 0;
+
+  const hojasPdf: GrupoVista[] = useMemo(
+    () => conSaldo.map((proveedor) => {
+      const filas = facturas.filter((factura) => factura.proveedor_id === proveedor.id);
+      const desde = filas[0]?.fecha_ingreso;
+      const hasta = filas[filas.length - 1]?.fecha_ingreso;
+      return {
+        id: proveedor.id,
+        proveedor: proveedor.nombre,
+        periodo: desde && hasta ? `${fechaCorta(desde)} al ${fechaCorta(hasta)}` : hoySantiago(),
+        total: filas.reduce((suma, factura) => suma + Number(factura.saldo), 0),
+        filas: filas.map((factura) => ({
+          id: factura.id,
+          fecha: factura.fecha_ingreso,
+          numero: factura.numero,
+          saldo: Number(factura.saldo),
+          estado: factura.estado,
+          con_rapel: factura.con_rapel,
+        })),
+      };
+    }),
+    [conSaldo, facturas],
+  );
+
+  const coincidencias = useMemo(() => {
+    const q = buscaFactura.trim().toLowerCase();
+    if (q.length < 1) return [];
+    return facturas
+      .filter((factura) => factura.numero.toLowerCase().includes(q))
+      .slice(0, 8)
+      .map((factura) => ({
+        ...factura,
+        proveedor: mapaProveedor[factura.proveedor_id] ?? "Proveedor",
+      }));
+  }, [buscaFactura, facturas, mapaProveedor]);
 
   useEffect(() => {
     if (!elegido && conSaldo.length > 0) setElegido(conSaldo[0].id);
@@ -79,50 +136,113 @@ export default function Pendientes() {
     }
   }, [conSaldo, elegido]);
 
-  async function verPdf() {
-    if (sinFacturas) return;
-    setExportando(true);
-    try {
-      const grupos = conSaldo.map((proveedor) => {
-        const filas = facturas.filter((factura) => factura.proveedor_id === proveedor.id);
-        const desde = filas[0]?.fecha_ingreso;
-        const hasta = filas[filas.length - 1]?.fecha_ingreso;
-        return {
-          proveedor: proveedor.nombre,
-          periodo: desde && hasta ? `${fechaCorta(desde)} al ${fechaCorta(hasta)}` : hoySantiago(),
-          filas: filas.map((factura) => ({
-            fecha: factura.fecha_ingreso,
-            numero: factura.numero,
-            saldo: Number(factura.saldo),
-            estado: factura.estado,
-            con_rapel: factura.con_rapel,
-          })),
-        };
-      });
-      const url = await pdfPendientesTodos(grupos);
-      setPdfUrl((previa) => {
-        if (previa) URL.revokeObjectURL(previa);
-        return url;
-      });
-    } finally {
-      setExportando(false);
-    }
-  }
-
-  function cerrarPdf() {
-    setPdfUrl((previa) => {
-      if (previa) URL.revokeObjectURL(previa);
-      return null;
+  function elegirProveedor(id: string) {
+    setElegido(id);
+    requestAnimationFrame(() => {
+      hojaRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
 
-  function elegirProveedor(id: string) {
-    setElegido(id);
-    if (pdfUrl) cerrarPdf();
+  function localizarFactura(factura: Factura, desdeBusqueda = false) {
+    setElegido(factura.proveedor_id);
+    setResaltadaId(factura.id);
+    if (desdeBusqueda) {
+      setEncontradaId(factura.id);
+      setBuscaFactura(factura.numero);
+    }
+    requestAnimationFrame(() => {
+      hojaRefs.current[factura.proveedor_id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+      filaRefs.current[factura.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
   }
+
+  function modificarEncontrada() {
+    if (!encontradaId) return;
+    setEditandoId(encontradaId);
+  }
+
+  function cerrarEditor() {
+    setEditandoId(null);
+  }
+
+  function limpiarBusqueda() {
+    setBuscaFactura("");
+    setResaltadaId(null);
+    setEncontradaId(null);
+  }
+
+  const facturaEncontrada = encontradaId
+    ? facturas.find((factura) => factura.id === encontradaId) ?? null
+    : null;
+
+  const buscador = (
+    <div className="pend-busca-factura">
+      <label className="pend-busca-factura-caja">
+        <span className="pend-busca-factura-etiq">Buscar factura</span>
+        <span className="pend-busca-factura-campo">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
+          </svg>
+          <input
+            ref={buscaRef}
+            value={buscaFactura}
+            placeholder="Nº factura"
+            onChange={(e) => {
+              setBuscaFactura(e.target.value);
+              setEncontradaId(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && coincidencias[0]) {
+                e.preventDefault();
+                localizarFactura(coincidencias[0], true);
+              }
+              if (e.key === "Escape") limpiarBusqueda();
+            }}
+          />
+        </span>
+      </label>
+      {buscaFactura.trim() && !encontradaId && (
+        <div className="pend-busca-resultados">
+          {coincidencias.length === 0 && (
+            <p className="pend-busca-vacio">Sin coincidencias</p>
+          )}
+          {coincidencias.map((factura) => (
+            <button
+              key={factura.id}
+              type="button"
+              className="pend-busca-item"
+              onClick={() => localizarFactura(factura, true)}
+            >
+              <span className="pend-busca-item-num">{factura.numero}</span>
+              <span className="pend-busca-item-meta">{factura.proveedor}</span>
+              <strong className="pend-busca-item-saldo">{formatoPeso(factura.saldo)}</strong>
+            </button>
+          ))}
+        </div>
+      )}
+      {facturaEncontrada && (
+        <div className="pend-busca-encontrada">
+          <div className="pend-busca-encontrada-info">
+            <span className="pend-busca-item-num">{facturaEncontrada.numero}</span>
+            <span className="pend-busca-item-meta">{mapaProveedor[facturaEncontrada.proveedor_id] ?? ""}</span>
+            <strong className="pend-busca-item-saldo">{formatoPeso(facturaEncontrada.saldo)}</strong>
+          </div>
+          <button type="button" className="btn-barra btn-barra-principal" onClick={modificarEncontrada}>
+            Modificar
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   const acciones = (
     <>
+      <div className="pend-zoom escritorio-solo">
+        <button type="button" className="btn-barra" disabled={zoomPdf <= 0.8} onClick={() => setZoomPdf((z) => Math.max(0.8, Number((z - 0.1).toFixed(1))))}>−</button>
+        <button type="button" className="btn-barra" disabled={zoomPdf >= 1.3} onClick={() => setZoomPdf((z) => Math.min(1.3, Number((z + 0.1).toFixed(1))))}>+</button>
+      </div>
+      <div className="escritorio-solo">{buscador}</div>
       <a className="btn-barra" href="/facturas?nueva=1">Nueva factura</a>
       <a className="btn-barra" href="/pagos/registrar">Registrar pago</a>
       <button
@@ -143,19 +263,6 @@ export default function Pendientes() {
       >
         WhatsApp
       </button>
-      <button
-        type="button"
-        className="btn-barra btn-barra-principal"
-        disabled={sinFacturas || exportando}
-        onClick={() => void verPdf()}
-      >
-        {exportando ? "Generando…" : "Ver en PDF"}
-      </button>
-      {pdfUrl && (
-        <button type="button" className="btn-barra" onClick={cerrarPdf}>
-          Volver a tabla
-        </button>
-      )}
     </>
   );
 
@@ -197,7 +304,7 @@ export default function Pendientes() {
                   <button
                     key={item.id}
                     type="button"
-                    className={`pend-proveedor ${elegido === item.id && !pdfUrl ? "activa" : ""}`}
+                    className={`pend-proveedor ${elegido === item.id ? "activa" : ""}`}
                     onClick={() => elegirProveedor(item.id)}
                   >
                     <span className="pend-proveedor-nombre">{item.nombre}</span>
@@ -222,114 +329,108 @@ export default function Pendientes() {
                 <button
                   key={item.id}
                   type="button"
-                  className={`pend-chip ${elegido === item.id && !pdfUrl ? "activa" : ""}`}
+                  className={`pend-chip ${elegido === item.id ? "activa" : ""}`}
                   onClick={() => elegirProveedor(item.id)}
                 >
                   {item.nombre}
                 </button>
               ))}
             </div>
+            <div className="pend-movil-busca">{buscador}</div>
           </div>
 
-          <div className="pend-detalle">
-            <div className="pend-detalle-cabeza">
-              <div className="pend-detalle-info">
-                <h2 className="pend-detalle-titulo">
-                  {pdfUrl ? "PDF · Todos los proveedores" : (nombre || "Seleccione un proveedor")}
-                </h2>
-                <p className="pend-detalle-sub">
-                  {pdfUrl
-                    ? `${facturas.length} factura${facturas.length === 1 ? "" : "s"} · Total general`
-                    : elegido
-                      ? `${delProveedor.length} factura${delProveedor.length === 1 ? "" : "s"} · ${periodo}`
-                      : "Elija un proveedor de la lista"}
-                </p>
-              </div>
-              <p className="pend-detalle-total">
-                <span>Por pagar</span>
-                <strong>{formatoPeso(pdfUrl ? totalGeneral : total)}</strong>
-              </p>
-            </div>
+          <div className="pend-panel-der pend-panel-der-pdf">
+            <div className="pend-barra-pdf escritorio-solo">Facturas pendientes</div>
 
-            {pdfUrl ? (
-              <div className="pend-pdf-caja">
-                <iframe className="pend-pdf-marco" title="Pendientes PDF" src={pdfUrl} />
-              </div>
-            ) : (
-              <>
-                <div className="pend-tabla-caja escritorio-solo">
-                  <div className="tabla-scroll">
-                    <table className="tabla pend-tabla">
-                      <thead>
-                        <tr>
-                          <th>Fecha</th>
-                          <th>Factura</th>
-                          <th>Monto</th>
-                          <th>Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {delProveedor.length === 0 && (
-                          <tr><td colSpan={4}>{elegido ? "Este proveedor no tiene saldo pendiente." : "Sin datos."}</td></tr>
-                        )}
-                        {delProveedor.map((factura) => (
-                          <tr key={factura.id} onDoubleClick={() => { window.location.href = `/facturas/${factura.id}`; }}>
-                            <td className="nowrap">{fechaCorta(factura.fecha_ingreso)}</td>
-                            <td className="nowrap">{factura.numero}</td>
-                            <td className="nowrap saldo-rojo">{formatoPeso(factura.saldo)}</td>
-                            <td>
-                              <span className={`estado-badge ${factura.estado === "pago_parcial" ? "estado-parcial" : "estado-pendiente"}`}>
-                                {estadoVisible(factura.estado, Boolean(factura.con_rapel))}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="pend-total-barra">
-                    <span>Total por pagar</span>
-                    <strong>{formatoPeso(total)}</strong>
-                  </div>
-                </div>
-
-                <div className="lista-cartas movil-solo pend-cartas">
-                  {delProveedor.length === 0 && elegido && (
-                    <p className="pend-vacio">Este proveedor no tiene saldo pendiente.</p>
+            <div className="pend-panel-der-cuerpo">
+              <div className="pend-detalle pend-detalle-pdf">
+                <div className="pend-barra-pdf movil-solo">Facturas pendientes</div>
+                <div className="pend-pdf-escenario">
+                  {hojasPdf.length === 0 ? (
+                    <p className="pend-vacio-pdf">No hay facturas pendientes.</p>
+                  ) : (
+                    <div className="pend-pdf-hojas" style={{ transform: `scale(${zoomPdf})` }}>
+                      {hojasPdf.map((hoja) => (
+                        <article
+                          key={hoja.id}
+                          className={`pend-hoja ${elegido === hoja.id ? "pend-hoja-activa" : ""}`}
+                          ref={(nodo) => { hojaRefs.current[hoja.id] = nodo; }}
+                        >
+                          <h2 className="pend-hoja-titulo">{hoja.proveedor}</h2>
+                          <div className="pend-hoja-barra">
+                            <span>Facturas pendientes</span>
+                            <span>Periodo {hoja.periodo}</span>
+                          </div>
+                          <table className="pend-hoja-tabla">
+                            <thead>
+                              <tr>
+                                <th>Fecha</th>
+                                <th>Factura</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {hoja.filas.map((fila) => (
+                                <tr
+                                  key={fila.id}
+                                  ref={(nodo) => { filaRefs.current[fila.id] = nodo; }}
+                                  className={resaltadaId === fila.id ? "pend-fila-resaltada" : ""}
+                                  onClick={() => {
+                                    const factura = facturas.find((item) => item.id === fila.id);
+                                    if (factura) localizarFactura(factura, false);
+                                  }}
+                                >
+                                  <td>{fechaCorta(fila.fecha)}</td>
+                                  <td>{fila.numero}</td>
+                                  <td>{formatoPeso(fila.saldo)}</td>
+                                  <td>{estadoVisible(fila.estado, Boolean(fila.con_rapel))}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          <div className="pend-hoja-total">
+                            <span>Total por pagar</span>
+                            <strong>{formatoPeso(hoja.total)}</strong>
+                          </div>
+                          <p className="pend-hoja-pie">
+                            {hoja.filas.length} factura{hoja.filas.length === 1 ? "" : "s"} pendiente{hoja.filas.length === 1 ? "" : "s"}
+                          </p>
+                        </article>
+                      ))}
+                    </div>
                   )}
-                  {delProveedor.map((factura) => (
-                    <button
-                      key={factura.id}
-                      type="button"
-                      className="pend-carta"
-                      onClick={() => { window.location.href = `/facturas/${factura.id}`; }}
-                    >
-                      <div className="pend-carta-arriba">
-                        <span className="pend-carta-numero">{factura.numero}</span>
-                        <span className={`estado-badge ${factura.estado === "pago_parcial" ? "estado-parcial" : "estado-pendiente"}`}>
-                          {estadoVisible(factura.estado, Boolean(factura.con_rapel))}
-                        </span>
-                      </div>
-                      <div className="pend-carta-abajo">
-                        <span>{fechaCorta(factura.fecha_ingreso)}</span>
-                        <strong className="saldo-rojo">{formatoPeso(factura.saldo)}</strong>
-                      </div>
-                    </button>
-                  ))}
                 </div>
-              </>
-            )}
 
-            <footer className="pend-acciones pend-acciones-movil movil-solo">
-              {acciones}
-            </footer>
+                <footer className="pend-acciones pend-acciones-movil movil-solo">
+                  {acciones}
+                </footer>
+              </div>
+
+              <aside className="pend-acciones pend-acciones-lado escritorio-solo">
+                {acciones}
+              </aside>
+            </div>
           </div>
-
-          <aside className="pend-acciones pend-acciones-lado escritorio-solo">
-            {acciones}
-          </aside>
         </div>
       </section>
+
+      {editandoId && (
+        <div className="factura-modal-capa" role="dialog" aria-modal="true" aria-label="Modificar factura">
+          <div className="factura-modal">
+            <EditorFactura
+              key={editandoId}
+              facturaId={editandoId}
+              variante="modal"
+              onCerrar={cerrarEditor}
+              onGuardado={() => {
+                void cargar();
+                cerrarEditor();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
