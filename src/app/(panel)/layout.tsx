@@ -54,8 +54,6 @@ export default function Panel({ children }: { children: React.ReactNode }) {
     { href: "/pagos/abono", texto: "Abono parcial", grupo: "Pagos" },
     { href: "/facturas/parciales", texto: "Pago parcial", grupo: "Pagos" },
     { href: "/rapel", texto: "Rapel", grupo: "Pagos" },
-    { href: "/facturas/listado", texto: "Listado", grupo: "Reportes" },
-    { href: "/reportes/productos", texto: "Productos", grupo: "Reportes" },
     { href: "/personal", texto: "Personal", grupo: "Empresa" },
     ...(admin ? [{ href: "/usuarios", texto: "Usuarios", grupo: "Empresa" }] : []),
   ];
