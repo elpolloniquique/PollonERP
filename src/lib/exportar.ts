@@ -109,7 +109,7 @@ export async function excelListado(filas: FilaListado[], periodo: string) {
       const ultimaDato = inicioTabla + filasDatos.length;
       for (let fila = inicioTabla + 1; fila <= ultimaDato; fila += 1) {
         for (const col of [3, 4, 5, 6]) {
-          hojaLibro.getCell(fila, col).numFmt = FORMATO_PESO_EXCEL;"$"-#,##0';"$"0';
+          hojaLibro.getCell(fila, col).numFmt = FORMATO_PESO_EXCEL;
           hojaLibro.getCell(fila, col).alignment = { horizontal: "right" };
         }
       }
