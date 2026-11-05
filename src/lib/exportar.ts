@@ -30,6 +30,9 @@ function nombreTabla(indice: number) {
   return `FacturasProv${indice}`;
 }
 
+/** Formato de pesos para Excel (evita comillas anidadas que rompen el parser). */
+const FORMATO_PESO_EXCEL = "$#,##0;($#,##0);-";
+
 export async function excelListado(filas: FilaListado[], periodo: string) {
   const ExcelJS = (await import("exceljs")).default;
   const libro = new ExcelJS.Workbook();
@@ -106,7 +109,7 @@ export async function excelListado(filas: FilaListado[], periodo: string) {
       const ultimaDato = inicioTabla + filasDatos.length;
       for (let fila = inicioTabla + 1; fila <= ultimaDato; fila += 1) {
         for (const col of [3, 4, 5, 6]) {
-          hojaLibro.getCell(fila, col).numFmt = '"$"#,##0';"$"-#,##0';"$"0';
+          hojaLibro.getCell(fila, col).numFmt = FORMATO_PESO_EXCEL;"$"-#,##0';"$"0';
           hojaLibro.getCell(fila, col).alignment = { horizontal: "right" };
         }
       }
@@ -135,7 +138,7 @@ export async function excelListado(filas: FilaListado[], periodo: string) {
         hojaLibro.getCell(`A${fila}`).font = { bold: true, color: { argb: "FF5C6478" } };
         hojaLibro.getCell(`B${fila}`).value = valor;
         hojaLibro.getCell(`B${fila}`).font = { bold: true, color: { argb: "FF12141C" } };
-        if (dinero) hojaLibro.getCell(`B${fila}`).numFmt = '"$"#,##0;"$"#-#,##0;"$"0';
+        if (dinero) hojaLibro.getCell(`B${fila}`).numFmt = FORMATO_PESO_EXCEL;
         if (etiqueta === "Total pendiente") hojaLibro.getCell(`B${fila}`).font = { bold: true, color: { argb: "FFC5364A" } };
         if (etiqueta === "Total pagado") hojaLibro.getCell(`B${fila}`).font = { bold: true, color: { argb: "FF0F7A4A" } };
         if (etiqueta === "Total general") {
