@@ -103,17 +103,20 @@ export default function Proveedores() {
     <div className="prov-pantalla">
       <section className="prov-tarjeta">
         <header className="prov-cabeza">
-          <div>
+          <div className="prov-cabeza-texto">
             <p className="prov-kicker">Operación</p>
             <h1 className="prov-titulo">Proveedores</h1>
             <p className="prov-sub">{visibles.length} visible{visibles.length === 1 ? "" : "s"}</p>
           </div>
-          <button type="button" className="btn-barra btn-barra-principal prov-btn-agregar" onClick={() => setFichaId("nuevo")}>
+          <button type="button" className="btn-barra btn-barra-principal prov-btn-agregar escritorio-solo" onClick={() => setFichaId("nuevo")}>
             Agregar nuevo proveedor
           </button>
         </header>
 
         <div className="prov-herramientas">
+          <button type="button" className="btn-barra btn-barra-principal prov-btn-agregar movil-solo" onClick={() => setFichaId("nuevo")}>
+            Agregar
+          </button>
           <label className="prov-buscar-caja">
             <span className="prov-buscar-icono" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
