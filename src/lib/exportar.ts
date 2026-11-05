@@ -261,6 +261,90 @@ export async function pdfLiquidacion(titulo: string, lineas: string[]) {
   descargar(new Blob([await pdf.save()]), "liquidacion.pdf");
 }
 
+export type FilaPendientePdf = {
+  fecha: string;
+  numero: string;
+  saldo: number;
+  estado: string;
+  con_rapel?: boolean;
+};
+
+/** PDF de facturas pendientes de un proveedor; se abre en una pestaña. */
+export async function pdfPendientes(
+  filas: FilaPendientePdf[],
+  proveedor: string,
+  periodo: string,
+  total: number,
+) {
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+  const pdf = await PDFDocument.create();
+  const fuente = await pdf.embedFont(StandardFonts.Helvetica);
+  const negrita = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const tinta = rgb(0.07, 0.08, 0.11);
+  const acento = rgb(0.14, 0.21, 0.94);
+  const gris = rgb(0.36, 0.39, 0.47);
+  const blanco = rgb(1, 1, 1);
+
+  let pagina = pdf.addPage([595, 842]);
+  let y = 800;
+
+  const encabezado = () => {
+    pagina.drawRectangle({ x: 40, y: y - 8, width: 515, height: 28, color: acento });
+    pagina.drawText("Facturas pendientes", { x: 52, y: y, size: 13, font: negrita, color: blanco });
+    y -= 36;
+    pagina.drawText((proveedor || "Proveedor").slice(0, 55), { x: 40, y, size: 14, font: negrita, color: tinta });
+    y -= 16;
+    pagina.drawText(`Periodo ${periodo}`, { x: 40, y, size: 10, font: fuente, color: gris });
+    y -= 22;
+    pagina.drawText("Fecha", { x: 40, y, size: 9, font: negrita, color: tinta });
+    pagina.drawText("Factura", { x: 120, y, size: 9, font: negrita, color: tinta });
+    pagina.drawText("Monto", { x: 280, y, size: 9, font: negrita, color: tinta });
+    pagina.drawText("Estado", { x: 400, y, size: 9, font: negrita, color: tinta });
+    y -= 8;
+    pagina.drawLine({ start: { x: 40, y }, end: { x: 555, y }, thickness: 1, color: rgb(0.89, 0.9, 0.95) });
+    y -= 14;
+  };
+
+  encabezado();
+  if (filas.length === 0) {
+    pagina.drawText("Sin facturas pendientes.", { x: 40, y, size: 11, font: fuente, color: gris });
+  } else {
+    for (const fila of filas) {
+      if (y < 90) {
+        pagina = pdf.addPage([595, 842]);
+        y = 800;
+        encabezado();
+      }
+      pagina.drawText(fechaCorta(fila.fecha), { x: 40, y, size: 9, font: fuente, color: tinta });
+      pagina.drawText(String(fila.numero).slice(0, 22), { x: 120, y, size: 9, font: fuente, color: tinta });
+      pagina.drawText(formatoPeso(Number(fila.saldo)), { x: 280, y, size: 9, font: fuente, color: tinta });
+      pagina.drawText(estadoVisible(fila.estado, Boolean(fila.con_rapel)).slice(0, 18), { x: 400, y, size: 9, font: fuente, color: tinta });
+      y -= 14;
+    }
+  }
+
+  if (y < 110) {
+    pagina = pdf.addPage([595, 842]);
+    y = 800;
+  }
+  y -= 8;
+  pagina.drawLine({ start: { x: 40, y }, end: { x: 555, y }, thickness: 1, color: rgb(0.89, 0.9, 0.95) });
+  y -= 20;
+  pagina.drawRectangle({ x: 40, y: y - 10, width: 515, height: 32, color: acento });
+  pagina.drawText("Total por pagar", { x: 52, y, size: 11, font: negrita, color: blanco });
+  pagina.drawText(formatoPeso(total), { x: 400, y, size: 12, font: negrita, color: blanco });
+  y -= 36;
+  pagina.drawText(`${filas.length} factura${filas.length === 1 ? "" : "s"} pendiente${filas.length === 1 ? "" : "s"}`, {
+    x: 40, y, size: 10, font: fuente, color: gris,
+  });
+
+  const bytes = await pdf.save();
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank", "noopener");
+  descargar(blob, `pendientes-${(proveedor || "proveedor").replace(/\s+/g, "-")}.pdf`);
+}
+
 function descargar(blob: Blob, nombre: string) {
   const enlace = document.createElement("a");
   enlace.href = URL.createObjectURL(blob);
