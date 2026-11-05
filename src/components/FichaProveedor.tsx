@@ -137,23 +137,25 @@ export function FichaProveedor({ id }: { id: string }) {
               <div className="ficha-grilla">
                 <Campo nombre="Nombre" valor={datos.nombre} onChange={(v) => poner("nombre", v)} />
                 <Campo nombre="Rubro" valor={datos.rubro} onChange={(v) => poner("rubro", v)} />
-                <Campo nombre="Razón social" valor={datos.razon_social} onChange={(v) => poner("razon_social", v)} />
                 <Campo nombre="RUT" valor={rutVisible} onChange={(v) => poner("rut", v)} />
+                <Campo nombre="Razón social" valor={datos.razon_social} onChange={(v) => poner("razon_social", v)} clase="ficha-span-2" />
                 <Campo nombre="Giro" valor={datos.giro} onChange={(v) => poner("giro", v)} />
                 <Campo nombre="Contacto" valor={datos.contacto} onChange={(v) => poner("contacto", v)} />
                 <Campo nombre="Teléfono" valor={datos.telefono} onChange={(v) => poner("telefono", v)} />
                 <Campo nombre="Correo de cobranza" valor={datos.correo_cobranza} onChange={(v) => poner("correo_cobranza", v)} />
-                <Campo nombre="Dirección" valor={datos.direccion} onChange={(v) => poner("direccion", v)} clase="ficha-span-2" />
-                <Campo nombre="Días de crédito" valor={String(datos.dias_credito)} onChange={(v) => poner("dias_credito", Number(v))} />
-                <label className="campo ficha-span-2">
+                <Campo nombre="Dirección" valor={datos.direccion} onChange={(v) => poner("direccion", v)} clase="ficha-span-3" />
+                <label className="campo ficha-span-3">
                   <span className="etiqueta">Observaciones</span>
                   <textarea rows={2} value={datos.observaciones} onChange={(e) => poner("observaciones", e.target.value)} />
                 </label>
               </div>
-              <label className="ficha-check">
-                <input type="checkbox" checked={datos.activo} onChange={(e) => poner("activo", e.target.checked)} />
-                Proveedor activo
-              </label>
+              <div className="ficha-fila-estado">
+                <Campo nombre="Días de crédito" valor={String(datos.dias_credito)} onChange={(v) => poner("dias_credito", Number(v))} />
+                <label className="ficha-check">
+                  <input type="checkbox" checked={datos.activo} onChange={(e) => poner("activo", e.target.checked)} />
+                  Proveedor activo
+                </label>
+              </div>
             </div>
           )}
 
