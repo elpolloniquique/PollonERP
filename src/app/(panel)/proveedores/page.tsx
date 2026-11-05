@@ -151,14 +151,15 @@ export default function Proveedores() {
                   <th>Estado</th>
                   <th>Rapel</th>
                   <th>Saldo</th>
+                  <th className="prov-col-accion">Acción</th>
                 </tr>
               </thead>
               <tbody>
                 {visibles.length === 0 && (
-                  <tr><td colSpan={5}>No hay proveedores con este filtro.</td></tr>
+                  <tr><td colSpan={6}>No hay proveedores con este filtro.</td></tr>
                 )}
                 {visibles.map((fila) => (
-                  <tr key={fila.id} onDoubleClick={() => { window.location.href = `/proveedores/${fila.id}`; }}>
+                  <tr key={fila.id}>
                     <td><Link href={`/proveedores/${fila.id}`}>{fila.nombre}</Link></td>
                     <td className="nowrap">{fila.rut ? mostrarRut(fila.rut) : "—"}</td>
                     <td>
@@ -168,6 +169,9 @@ export default function Proveedores() {
                     </td>
                     <td>{fila.rapel_activo ? "Sí" : "No"}</td>
                     <td className={`nowrap ${fila.saldo > 0 ? "saldo-rojo" : ""}`}>{formatoPeso(fila.saldo)}</td>
+                    <td className="prov-col-accion">
+                      <Link href={`/proveedores/${fila.id}`} className="btn-barra btn-barra-ver">Ver</Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -177,7 +181,7 @@ export default function Proveedores() {
           <div className="lista-cartas movil-solo prov-cartas">
             {visibles.length === 0 && <p className="pendientes-vacio">No hay proveedores con este filtro.</p>}
             {visibles.map((fila) => (
-              <Link key={fila.id} href={`/proveedores/${fila.id}`} className="carta-factura no-underline">
+              <article key={fila.id} className="carta-factura prov-carta">
                 <div className="carta-factura-arriba">
                   <span className="carta-factura-numero">{fila.nombre}</span>
                   <span className={`estado-badge ${fila.activo ? "estado-pagado" : "estado-anulado"}`}>
@@ -188,7 +192,10 @@ export default function Proveedores() {
                   <span>{fila.rut ? mostrarRut(fila.rut) : "Sin RUT"}{fila.rapel_activo ? " · Rapel" : ""}</span>
                   <strong className={fila.saldo > 0 ? "saldo-rojo" : ""}>{formatoPeso(fila.saldo)}</strong>
                 </div>
-              </Link>
+                <div className="prov-carta-accion">
+                  <Link href={`/proveedores/${fila.id}`} className="btn-barra btn-barra-ver">Ver ficha</Link>
+                </div>
+              </article>
             ))}
           </div>
         </div>
