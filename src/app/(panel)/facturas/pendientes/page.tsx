@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorFactura } from "@/components/EditorFactura";
 import { fechaCorta, hoySantiago } from "@/lib/fechas";
 import { estadoVisible, formatoPeso } from "@/lib/formato";
-import { copiarReportePendientes } from "@/lib/reporteImagen";
+import { copiarComoImagenPendientes, copiarReportePendientes } from "@/lib/reporteImagen";
 import { Perfil, supabase } from "@/lib/supabase";
 
 type Factura = {
@@ -46,6 +46,8 @@ export default function Pendientes() {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [resaltadaId, setResaltadaId] = useState<string | null>(null);
   const [encontradaId, setEncontradaId] = useState<string | null>(null);
+  const [copiandoImagen, setCopiandoImagen] = useState(false);
+  const [avisoImagen, setAvisoImagen] = useState("");
   const hojaRefs = useRef<Record<string, HTMLElement | null>>({});
   const filaRefs = useRef<Record<string, HTMLElement | null>>({});
   const buscaRef = useRef<HTMLInputElement | null>(null);
@@ -236,6 +238,38 @@ export default function Pendientes() {
     </div>
   );
 
+  async function copiarImagenLarga() {
+    if (sinElegido || copiandoImagen) return;
+    setCopiandoImagen(true);
+    setAvisoImagen("");
+    try {
+      const ok = await copiarComoImagenPendientes(
+        delProveedor.map((factura) => ({
+          fecha: factura.fecha_ingreso,
+          numero: factura.numero,
+          saldo: Number(factura.saldo),
+          estado: factura.estado,
+          con_rapel: factura.con_rapel,
+        })),
+        nombre,
+        periodo,
+        total,
+      );
+      setAvisoImagen(ok ? "Imagen copiada" : "Imagen descargada");
+      window.setTimeout(() => setAvisoImagen(""), 2500);
+    } finally {
+      setCopiandoImagen(false);
+    }
+  }
+
+  const filasWhatsApp = delProveedor.map((factura) => ({
+    fecha: factura.fecha_ingreso,
+    numero: factura.numero,
+    saldo: Number(factura.saldo),
+    estado: factura.estado,
+    con_rapel: factura.con_rapel,
+  }));
+
   const acciones = (
     <>
       <div className="pend-zoom escritorio-solo">
@@ -247,19 +281,17 @@ export default function Pendientes() {
       <a className="btn-barra" href="/pagos/registrar">Registrar pago</a>
       <button
         type="button"
+        className="btn-barra btn-barra-principal"
+        disabled={sinElegido || copiandoImagen}
+        onClick={() => void copiarImagenLarga()}
+      >
+        {copiandoImagen ? "Copiando…" : avisoImagen || "Copiar como imagen"}
+      </button>
+      <button
+        type="button"
         className="btn-barra"
         disabled={sinElegido}
-        onClick={() => void copiarReportePendientes(
-          delProveedor.map((factura) => ({
-            fecha: factura.fecha_ingreso,
-            numero: factura.numero,
-            saldo: Number(factura.saldo),
-            estado: factura.estado,
-          })),
-          nombre,
-          periodo,
-          total,
-        )}
+        onClick={() => void copiarReportePendientes(filasWhatsApp, nombre, periodo, total)}
       >
         WhatsApp
       </button>
