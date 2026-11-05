@@ -55,21 +55,34 @@ export default function Proveedores() {
             <h1 className="prov-titulo">Proveedores</h1>
             <p className="prov-sub">{visibles.length} visible{visibles.length === 1 ? "" : "s"}</p>
           </div>
-          <button type="button" className="btn-barra btn-barra-principal" onClick={() => setFichaId("nuevo")}>
+          <button type="button" className="btn-barra btn-barra-principal prov-btn-agregar" onClick={() => setFichaId("nuevo")}>
             Agregar nuevo proveedor
           </button>
         </header>
 
         <div className="prov-herramientas">
-          <input
-            className="prov-buscar"
-            placeholder="Buscar por nombre"
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-          />
-          <label className="prov-check">
-            <input type="checkbox" checked={verInactivos} onChange={(e) => setVerInactivos(e.target.checked)} />
-            Ver inactivos
+          <label className="prov-buscar-caja">
+            <span className="prov-buscar-icono" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
+              </svg>
+            </span>
+            <input
+              className="prov-buscar"
+              placeholder="Buscar por nombre"
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+            />
+          </label>
+          <label className="prov-switch">
+            <span>Ver inactivos</span>
+            <input
+              type="checkbox"
+              checked={verInactivos}
+              onChange={(e) => setVerInactivos(e.target.checked)}
+            />
+            <span className="prov-switch-pista" aria-hidden="true" />
           </label>
         </div>
 
@@ -121,22 +134,21 @@ export default function Proveedores() {
             {visibles.map((fila) => (
               <article key={fila.id} className="prov-carta">
                 <div className="prov-carta-cabeza">
-                  <div className="prov-carta-identidad">
-                    <h2 className="prov-carta-nombre">{fila.nombre}</h2>
-                    <p className="prov-carta-meta">
-                      {fila.rut ? mostrarRut(fila.rut) : "Sin RUT"}
-                      {fila.rapel_activo ? " · Rapel" : ""}
-                    </p>
-                  </div>
+                  <h2 className="prov-carta-nombre">{fila.nombre}</h2>
                   <span className={`estado-badge ${fila.activo ? "estado-pagado" : "estado-anulado"}`}>
                     {fila.activo ? "Activo" : "Inactivo"}
                   </span>
                 </div>
-                <div className="prov-carta-saldo">
-                  <span className="prov-carta-etiqueta">Saldo</span>
-                  <strong className={fila.saldo > 0 ? "saldo-rojo" : ""}>{formatoPeso(fila.saldo)}</strong>
+                <div className="prov-carta-fila">
+                  <span className="prov-carta-meta">
+                    {fila.rut ? mostrarRut(fila.rut) : "Sin RUT"}
+                    {fila.rapel_activo ? " · Rapel" : ""}
+                  </span>
+                  <strong className={`prov-carta-monto ${fila.saldo > 0 ? "saldo-rojo" : ""}`}>
+                    {formatoPeso(fila.saldo)}
+                  </strong>
                 </div>
-                <button type="button" className="btn-barra btn-barra-ver prov-carta-btn" onClick={() => setFichaId(fila.id)}>
+                <button type="button" className="prov-carta-btn" onClick={() => setFichaId(fila.id)}>
                   Ver ficha
                 </button>
               </article>
