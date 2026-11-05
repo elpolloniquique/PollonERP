@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { fechaCorta, hoySantiago } from "@/lib/fechas";
 import { estadoVisible, formatoPeso } from "@/lib/formato";
-import { pdfPendientes } from "@/lib/exportar";
+import { pdfPendientesTodos } from "@/lib/exportar";
 import { copiarReportePendientes } from "@/lib/reporteImagen";
 import { Perfil, supabase } from "@/lib/supabase";
 
@@ -25,6 +25,7 @@ export default function Pendientes() {
   const [elegido, setElegido] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [exportando, setExportando] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   async function cargar() {
     const { data: usuario } = await supabase().auth.getUser();
@@ -49,6 +50,10 @@ export default function Pendientes() {
     return () => { void supabase().removeChannel(canal); };
   }, []);
 
+  useEffect(() => () => {
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+  }, [pdfUrl]);
+
   const conSaldo = useMemo(
     () => proveedores.filter((item) => facturas.some((factura) => factura.proveedor_id === item.id)),
     [proveedores, facturas],
@@ -64,7 +69,8 @@ export default function Pendientes() {
     ? `${fechaCorta(delProveedor[0].fecha_ingreso)} al ${fechaCorta(delProveedor[delProveedor.length - 1].fecha_ingreso)}`
     : hoySantiago();
   const nombre = proveedores.find((item) => item.id === elegido)?.nombre ?? "";
-  const sinFacturas = !elegido || delProveedor.length === 0;
+  const sinFacturas = facturas.length === 0;
+  const sinElegido = !elegido || delProveedor.length === 0;
 
   useEffect(() => {
     if (!elegido && conSaldo.length > 0) setElegido(conSaldo[0].id);
@@ -77,21 +83,42 @@ export default function Pendientes() {
     if (sinFacturas) return;
     setExportando(true);
     try {
-      await pdfPendientes(
-        delProveedor.map((factura) => ({
-          fecha: factura.fecha_ingreso,
-          numero: factura.numero,
-          saldo: Number(factura.saldo),
-          estado: factura.estado,
-          con_rapel: factura.con_rapel,
-        })),
-        nombre,
-        periodo,
-        total,
-      );
+      const grupos = conSaldo.map((proveedor) => {
+        const filas = facturas.filter((factura) => factura.proveedor_id === proveedor.id);
+        const desde = filas[0]?.fecha_ingreso;
+        const hasta = filas[filas.length - 1]?.fecha_ingreso;
+        return {
+          proveedor: proveedor.nombre,
+          periodo: desde && hasta ? `${fechaCorta(desde)} al ${fechaCorta(hasta)}` : hoySantiago(),
+          filas: filas.map((factura) => ({
+            fecha: factura.fecha_ingreso,
+            numero: factura.numero,
+            saldo: Number(factura.saldo),
+            estado: factura.estado,
+            con_rapel: factura.con_rapel,
+          })),
+        };
+      });
+      const url = await pdfPendientesTodos(grupos);
+      setPdfUrl((previa) => {
+        if (previa) URL.revokeObjectURL(previa);
+        return url;
+      });
     } finally {
       setExportando(false);
     }
+  }
+
+  function cerrarPdf() {
+    setPdfUrl((previa) => {
+      if (previa) URL.revokeObjectURL(previa);
+      return null;
+    });
+  }
+
+  function elegirProveedor(id: string) {
+    setElegido(id);
+    if (pdfUrl) cerrarPdf();
   }
 
   const acciones = (
@@ -101,7 +128,7 @@ export default function Pendientes() {
       <button
         type="button"
         className="btn-barra"
-        disabled={sinFacturas}
+        disabled={sinElegido}
         onClick={() => void copiarReportePendientes(
           delProveedor.map((factura) => ({
             fecha: factura.fecha_ingreso,
@@ -124,6 +151,11 @@ export default function Pendientes() {
       >
         {exportando ? "Generando…" : "Ver en PDF"}
       </button>
+      {pdfUrl && (
+        <button type="button" className="btn-barra" onClick={cerrarPdf}>
+          Volver a tabla
+        </button>
+      )}
     </>
   );
 
@@ -165,8 +197,8 @@ export default function Pendientes() {
                   <button
                     key={item.id}
                     type="button"
-                    className={`pend-proveedor ${elegido === item.id ? "activa" : ""}`}
-                    onClick={() => setElegido(item.id)}
+                    className={`pend-proveedor ${elegido === item.id && !pdfUrl ? "activa" : ""}`}
+                    onClick={() => elegirProveedor(item.id)}
                   >
                     <span className="pend-proveedor-nombre">{item.nombre}</span>
                     <span className="pend-proveedor-meta">{cantidad} factura{cantidad === 1 ? "" : "s"}</span>
@@ -174,10 +206,6 @@ export default function Pendientes() {
                   </button>
                 );
               })}
-            </div>
-
-            <div className="pend-acciones pend-acciones-lado">
-              {acciones}
             </div>
           </aside>
 
@@ -194,8 +222,8 @@ export default function Pendientes() {
                 <button
                   key={item.id}
                   type="button"
-                  className={`pend-chip ${elegido === item.id ? "activa" : ""}`}
-                  onClick={() => setElegido(item.id)}
+                  className={`pend-chip ${elegido === item.id && !pdfUrl ? "activa" : ""}`}
+                  onClick={() => elegirProveedor(item.id)}
                 >
                   {item.nombre}
                 </button>
@@ -206,84 +234,100 @@ export default function Pendientes() {
           <div className="pend-detalle">
             <div className="pend-detalle-cabeza">
               <div className="pend-detalle-info">
-                <h2 className="pend-detalle-titulo">{nombre || "Seleccione un proveedor"}</h2>
+                <h2 className="pend-detalle-titulo">
+                  {pdfUrl ? "PDF · Todos los proveedores" : (nombre || "Seleccione un proveedor")}
+                </h2>
                 <p className="pend-detalle-sub">
-                  {elegido
-                    ? `${delProveedor.length} factura${delProveedor.length === 1 ? "" : "s"} · ${periodo}`
-                    : "Elija un proveedor de la lista"}
+                  {pdfUrl
+                    ? `${facturas.length} factura${facturas.length === 1 ? "" : "s"} · Total general`
+                    : elegido
+                      ? `${delProveedor.length} factura${delProveedor.length === 1 ? "" : "s"} · ${periodo}`
+                      : "Elija un proveedor de la lista"}
                 </p>
               </div>
               <p className="pend-detalle-total">
                 <span>Por pagar</span>
-                <strong>{formatoPeso(total)}</strong>
+                <strong>{formatoPeso(pdfUrl ? totalGeneral : total)}</strong>
               </p>
             </div>
 
-            <div className="pend-tabla-caja escritorio-solo">
-              <div className="tabla-scroll">
-                <table className="tabla pend-tabla">
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-                      <th>Factura</th>
-                      <th>Monto</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {delProveedor.length === 0 && (
-                      <tr><td colSpan={4}>{elegido ? "Este proveedor no tiene saldo pendiente." : "Sin datos."}</td></tr>
-                    )}
-                    {delProveedor.map((factura) => (
-                      <tr key={factura.id} onDoubleClick={() => { window.location.href = `/facturas/${factura.id}`; }}>
-                        <td className="nowrap">{fechaCorta(factura.fecha_ingreso)}</td>
-                        <td className="nowrap">{factura.numero}</td>
-                        <td className="nowrap saldo-rojo">{formatoPeso(factura.saldo)}</td>
-                        <td>
-                          <span className={`estado-badge ${factura.estado === "pago_parcial" ? "estado-parcial" : "estado-pendiente"}`}>
-                            {estadoVisible(factura.estado, Boolean(factura.con_rapel))}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {pdfUrl ? (
+              <div className="pend-pdf-caja">
+                <iframe className="pend-pdf-marco" title="Pendientes PDF" src={pdfUrl} />
               </div>
-              <div className="pend-total-barra">
-                <span>Total por pagar</span>
-                <strong>{formatoPeso(total)}</strong>
-              </div>
-            </div>
+            ) : (
+              <>
+                <div className="pend-tabla-caja escritorio-solo">
+                  <div className="tabla-scroll">
+                    <table className="tabla pend-tabla">
+                      <thead>
+                        <tr>
+                          <th>Fecha</th>
+                          <th>Factura</th>
+                          <th>Monto</th>
+                          <th>Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {delProveedor.length === 0 && (
+                          <tr><td colSpan={4}>{elegido ? "Este proveedor no tiene saldo pendiente." : "Sin datos."}</td></tr>
+                        )}
+                        {delProveedor.map((factura) => (
+                          <tr key={factura.id} onDoubleClick={() => { window.location.href = `/facturas/${factura.id}`; }}>
+                            <td className="nowrap">{fechaCorta(factura.fecha_ingreso)}</td>
+                            <td className="nowrap">{factura.numero}</td>
+                            <td className="nowrap saldo-rojo">{formatoPeso(factura.saldo)}</td>
+                            <td>
+                              <span className={`estado-badge ${factura.estado === "pago_parcial" ? "estado-parcial" : "estado-pendiente"}`}>
+                                {estadoVisible(factura.estado, Boolean(factura.con_rapel))}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="pend-total-barra">
+                    <span>Total por pagar</span>
+                    <strong>{formatoPeso(total)}</strong>
+                  </div>
+                </div>
 
-            <div className="lista-cartas movil-solo pend-cartas">
-              {delProveedor.length === 0 && elegido && (
-                <p className="pend-vacio">Este proveedor no tiene saldo pendiente.</p>
-              )}
-              {delProveedor.map((factura) => (
-                <button
-                  key={factura.id}
-                  type="button"
-                  className="pend-carta"
-                  onClick={() => { window.location.href = `/facturas/${factura.id}`; }}
-                >
-                  <div className="pend-carta-arriba">
-                    <span className="pend-carta-numero">{factura.numero}</span>
-                    <span className={`estado-badge ${factura.estado === "pago_parcial" ? "estado-parcial" : "estado-pendiente"}`}>
-                      {estadoVisible(factura.estado, Boolean(factura.con_rapel))}
-                    </span>
-                  </div>
-                  <div className="pend-carta-abajo">
-                    <span>{fechaCorta(factura.fecha_ingreso)}</span>
-                    <strong className="saldo-rojo">{formatoPeso(factura.saldo)}</strong>
-                  </div>
-                </button>
-              ))}
-            </div>
+                <div className="lista-cartas movil-solo pend-cartas">
+                  {delProveedor.length === 0 && elegido && (
+                    <p className="pend-vacio">Este proveedor no tiene saldo pendiente.</p>
+                  )}
+                  {delProveedor.map((factura) => (
+                    <button
+                      key={factura.id}
+                      type="button"
+                      className="pend-carta"
+                      onClick={() => { window.location.href = `/facturas/${factura.id}`; }}
+                    >
+                      <div className="pend-carta-arriba">
+                        <span className="pend-carta-numero">{factura.numero}</span>
+                        <span className={`estado-badge ${factura.estado === "pago_parcial" ? "estado-parcial" : "estado-pendiente"}`}>
+                          {estadoVisible(factura.estado, Boolean(factura.con_rapel))}
+                        </span>
+                      </div>
+                      <div className="pend-carta-abajo">
+                        <span>{fechaCorta(factura.fecha_ingreso)}</span>
+                        <strong className="saldo-rojo">{formatoPeso(factura.saldo)}</strong>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
             <footer className="pend-acciones pend-acciones-movil movil-solo">
               {acciones}
             </footer>
           </div>
+
+          <aside className="pend-acciones pend-acciones-lado escritorio-solo">
+            {acciones}
+          </aside>
         </div>
       </section>
     </div>

@@ -356,7 +356,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-columns: 250px minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr) 148px;
 }
 .pend-lista {
   display: flex;
@@ -602,24 +602,32 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   display: flex;
   flex-shrink: 0;
   gap: 6px;
-  border-top: 1px solid var(--linea);
   background: #fff;
   padding: 8px;
 }
 .pend-acciones-lado {
   flex-direction: column;
   align-items: stretch;
-  padding: 8px;
+  justify-content: flex-start;
+  gap: 8px;
+  border-left: 1px solid var(--linea);
+  background: #f7f8fd;
+  padding: 10px 8px;
 }
 .pend-acciones-lado .btn-barra {
   width: 100%;
-  min-height: 34px;
+  min-height: 40px;
   justify-content: center;
+  padding: 0 8px;
   font-size: 12px;
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
 }
 .pend-acciones-movil {
   flex-wrap: nowrap;
   align-items: center;
+  border-top: 1px solid var(--linea);
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
 }
 .pend-acciones-movil .btn-barra {
@@ -630,6 +638,22 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   font-size: 11px;
   text-align: center;
   white-space: nowrap;
+}
+.pend-pdf-caja {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  background: #e8ebf4;
+  padding: 8px;
+}
+.pend-pdf-marco {
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  border: 1px solid #cfd5ea;
+  border-radius: 3px;
+  background: #fff;
 }
 .pendientes-vacio {
   margin: 0;
@@ -782,7 +806,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   }
   .pend-cuerpo {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
   }
   .pend-movil-tope {
     display: flex !important;
@@ -792,6 +816,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   }
   .pend-detalle-titulo { font-size: 14px; }
   .pend-detalle-total strong { font-size: 15px; }
+  .pend-pdf-caja { padding: 6px; }
   .tarjeta-resumen.movil-solo {
     width: 100%;
     display: flex !important;
