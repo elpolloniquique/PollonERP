@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { EditorFactura } from "@/components/EditorFactura";
+import { excelListado, pdfListado } from "@/lib/exportar";
 import { fechaCorta, hoySantiago } from "@/lib/fechas";
 import { estadoVisible, formatoPeso } from "@/lib/formato";
 import { Perfil, supabase } from "@/lib/supabase";
@@ -203,6 +204,22 @@ function PanelFacturas() {
               <button type="button" className="btn-barra btn-barra-principal" onClick={() => setEditor("nueva")}>Agregar nueva factura</button>
               <button type="button" className="btn-barra" onClick={abrirModificar}>Modificar</button>
               <button type="button" className="btn-barra" onClick={() => void cargar()}>Actualizar</button>
+              <button
+                type="button"
+                className="btn-barra btn-barra-export"
+                disabled={visibles.length === 0}
+                onClick={() => void excelListado(visibles, `${filtroDesde || "inicio"} a ${filtroHasta || hoySantiago()}`)}
+              >
+                Excel
+              </button>
+              <button
+                type="button"
+                className="btn-barra btn-barra-export"
+                disabled={visibles.length === 0}
+                onClick={() => void pdfListado(visibles, `${filtroDesde || "inicio"} a ${filtroHasta || hoySantiago()}`)}
+              >
+                PDF
+              </button>
               <Link className="btn-barra" href="/">Salir</Link>
             </div>
 
