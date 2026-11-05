@@ -119,22 +119,26 @@ export default function Proveedores() {
           <div className="lista-cartas movil-solo prov-cartas">
             {visibles.length === 0 && <p className="pendientes-vacio">No hay proveedores con este filtro.</p>}
             {visibles.map((fila) => (
-              <article key={fila.id} className="carta-factura prov-carta">
-                <div className="carta-factura-arriba">
-                  <span className="carta-factura-numero">{fila.nombre}</span>
+              <article key={fila.id} className="prov-carta">
+                <div className="prov-carta-cabeza">
+                  <div className="prov-carta-identidad">
+                    <h2 className="prov-carta-nombre">{fila.nombre}</h2>
+                    <p className="prov-carta-meta">
+                      {fila.rut ? mostrarRut(fila.rut) : "Sin RUT"}
+                      {fila.rapel_activo ? " · Rapel" : ""}
+                    </p>
+                  </div>
                   <span className={`estado-badge ${fila.activo ? "estado-pagado" : "estado-anulado"}`}>
                     {fila.activo ? "Activo" : "Inactivo"}
                   </span>
                 </div>
-                <div className="carta-factura-abajo">
-                  <span>{fila.rut ? mostrarRut(fila.rut) : "Sin RUT"}{fila.rapel_activo ? " · Rapel" : ""}</span>
+                <div className="prov-carta-saldo">
+                  <span className="prov-carta-etiqueta">Saldo</span>
                   <strong className={fila.saldo > 0 ? "saldo-rojo" : ""}>{formatoPeso(fila.saldo)}</strong>
                 </div>
-                <div className="prov-carta-accion">
-                  <button type="button" className="btn-barra btn-barra-ver" onClick={() => setFichaId(fila.id)}>
-                    Ver ficha
-                  </button>
-                </div>
+                <button type="button" className="btn-barra btn-barra-ver prov-carta-btn" onClick={() => setFichaId(fila.id)}>
+                  Ver ficha
+                </button>
               </article>
             ))}
           </div>
