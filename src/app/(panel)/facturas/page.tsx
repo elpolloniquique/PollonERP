@@ -198,32 +198,34 @@ function PanelFacturas() {
         </div>
 
         <footer className="facturas-barra">
+          <div className="facturas-barra-izq">
+            <div className="facturas-barra-acciones">
+              <button type="button" className="btn-barra btn-barra-principal" onClick={() => setEditor("nueva")}>Agregar nueva factura</button>
+              <button type="button" className="btn-barra" onClick={abrirModificar}>Modificar</button>
+              <button type="button" className="btn-barra" onClick={() => void cargar()}>Actualizar</button>
+              <Link className="btn-barra" href="/">Salir</Link>
+            </div>
+
+            <div className="facturas-barra-filtro">
+              <label className="campo filtro-fecha">
+                <span className="etiqueta">Rango inicial</span>
+                <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
+              </label>
+              <label className="campo filtro-fecha">
+                <span className="etiqueta">Rango final</span>
+                <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+              </label>
+              <button type="button" className="btn-barra" onClick={aplicarFiltro}>Filtrar</button>
+              <button type="button" className="btn-barra" onClick={limpiarFiltro}>Limpiar</button>
+            </div>
+          </div>
+
           <div className="facturas-barra-nav">
-            <button type="button" className="btn barra-ico" disabled={indice <= 0} onClick={() => ir(0)} title="Primera">«</button>
-            <button type="button" className="btn barra-ico" disabled={indice <= 0} onClick={() => ir(indice - 1)} title="Anterior">‹</button>
+            <button type="button" className="btn-barra barra-ico" disabled={indice <= 0} onClick={() => ir(0)} title="Primera">«</button>
+            <button type="button" className="btn-barra barra-ico" disabled={indice <= 0} onClick={() => ir(indice - 1)} title="Anterior">‹</button>
             <span className="facturas-registro">Registro {visibles.length === 0 ? 0 : indice + 1} de {visibles.length}</span>
-            <button type="button" className="btn barra-ico" disabled={indice >= visibles.length - 1} onClick={() => ir(indice + 1)} title="Siguiente">›</button>
-            <button type="button" className="btn barra-ico" disabled={indice >= visibles.length - 1} onClick={() => ir(visibles.length - 1)} title="Última">»</button>
-          </div>
-
-          <div className="facturas-barra-filtro">
-            <label className="campo filtro-fecha">
-              <span className="etiqueta">Rango inicial</span>
-              <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
-            </label>
-            <label className="campo filtro-fecha">
-              <span className="etiqueta">Rango final</span>
-              <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
-            </label>
-            <button type="button" className="btn" onClick={aplicarFiltro}>Filtrar</button>
-            <button type="button" className="btn" onClick={limpiarFiltro}>Limpiar</button>
-          </div>
-
-          <div className="facturas-barra-acciones">
-            <button type="button" className="btn btn-solido" onClick={() => setEditor("nueva")}>Agregar</button>
-            <button type="button" className="btn" onClick={abrirModificar}>Modificar</button>
-            <button type="button" className="btn" onClick={() => void cargar()}>Actualizar</button>
-            <Link className="btn" href="/">Salir</Link>
+            <button type="button" className="btn-barra barra-ico" disabled={indice >= visibles.length - 1} onClick={() => ir(indice + 1)} title="Siguiente">›</button>
+            <button type="button" className="btn-barra barra-ico" disabled={indice >= visibles.length - 1} onClick={() => ir(visibles.length - 1)} title="Última">»</button>
           </div>
         </footer>
         {aviso && <p className="aviso m-0 rounded-none border-x-0 border-b-0">{aviso}</p>}

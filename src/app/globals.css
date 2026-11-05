@@ -648,29 +648,107 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .facturas-barra {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
-  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px 18px;
   border-top: 1px solid var(--linea);
-  background: linear-gradient(180deg, #fbfcff 0%, #f4f6fb 100%);
-  padding: 12px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f5f7fd 100%);
+  padding: 14px 16px;
+}
+.facturas-barra-izq {
+  display: flex;
+  flex: 1 1 640px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 14px;
 }
 .facturas-barra-nav,
 .facturas-barra-filtro,
 .facturas-barra-acciones {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: flex-end;
   gap: 8px;
 }
-.facturas-barra-nav { margin-right: auto; }
+.facturas-barra-acciones {
+  order: 0;
+}
+.facturas-barra-filtro {
+  order: 1;
+  padding: 8px;
+  border: 1px solid #e3e6f2;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(18, 20, 28, 0.03);
+}
+.facturas-barra-nav {
+  margin-left: auto;
+  padding: 6px;
+  border: 1px solid #e3e6f2;
+  border-radius: 14px;
+  background: #fff;
+}
+.btn-barra {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid #c9cffb;
+  border-radius: 12px;
+  background: #fff;
+  color: #16206a;
+  padding: 0 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  box-shadow: 0 1px 2px rgba(18, 20, 28, 0.04);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+.btn-barra:hover {
+  background: #eceefe;
+  border-color: #aeb8f5;
+}
+.btn-barra:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.btn-barra-principal {
+  min-height: 46px;
+  border-color: #16206a;
+  background: linear-gradient(135deg, #2436f0 0%, #1a28c4 100%);
+  color: #fff;
+  padding: 0 18px;
+  box-shadow: 0 8px 18px rgba(36, 54, 240, 0.28);
+}
+.btn-barra-principal:hover {
+  background: linear-gradient(135deg, #1a28c4 0%, #16206a 100%);
+  border-color: #16206a;
+  color: #fff;
+}
 .facturas-registro {
-  min-width: 120px;
+  min-width: 128px;
+  padding: 0 8px;
   text-align: center;
-  font-weight: 650;
+  font-weight: 700;
   color: var(--tinta);
 }
 .filtro-fecha { min-width: 140px; }
-.barra-ico { min-width: 42px; }
+.filtro-fecha .etiqueta {
+  color: #5c6478;
+  font-size: 11px;
+  font-weight: 700;
+}
+.filtro-fecha input {
+  min-height: 40px;
+  border-radius: 10px;
+}
+.barra-ico {
+  min-width: 42px;
+  padding: 0;
+  font-size: 16px;
+}
 
 .factura-modal-capa {
   position: fixed;
@@ -927,16 +1005,24 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
     flex-direction: column;
     align-items: stretch;
   }
+  .facturas-barra-izq,
   .facturas-barra-nav,
   .facturas-barra-filtro,
   .facturas-barra-acciones {
     width: 100%;
+    margin-left: 0;
   }
-  .facturas-barra-acciones .btn,
-  .facturas-barra-filtro .btn {
+  .facturas-barra-acciones .btn-barra {
     flex: 1 1 calc(50% - 8px);
   }
-  .filtro-fecha { min-width: 0; flex: 1 1 calc(50% - 8px); }
+  .btn-barra-principal {
+    flex: 1 1 100%;
+  }
+  .facturas-barra-filtro .btn-barra,
+  .filtro-fecha {
+    min-width: 0;
+    flex: 1 1 calc(50% - 8px);
+  }
   .factura-modal-capa {
     padding: 0;
     align-items: stretch;
