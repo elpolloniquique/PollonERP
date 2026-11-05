@@ -69,79 +69,102 @@ export default function RegistrarPago() {
     setFacturas(facturas.filter((factura) => !marcadas.includes(factura.id)));
   }
 
+  function marcar(id: string, activo: boolean) {
+    setMarcadas(activo ? [...marcadas, id] : marcadas.filter((item) => item !== id));
+  }
+
   return (
-    <div className="flex h-full min-h-0 flex-col p-2 sm:p-3">
-      <div className="marco flex min-h-0 flex-1 flex-col overflow-hidden">
-        <h1 className="titulo-barra">Registrar pago</h1>
-        <div className="grid min-h-0 flex-1 gap-3 overflow-auto p-3 lg:grid-cols-[minmax(0,1fr)_300px]">
-          <aside className="order-1 space-y-3 lg:order-2">
-            <label className="campo"><span className="etiqueta">Proveedor</span>
-              <select value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
-                <option value="">Seleccione</option>
-                {proveedores.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
-              </select>
-            </label>
-            <div className="rounded-xl border border-[var(--linea)] p-3">
-              <p className="font-semibold">Total {formatoPeso(suma)}</p>
-              <p className="mt-1 text-[#5c6478]">Medio: transferencia</p>
-              {elegidas.length > 0 && (
-                <ul className="mt-2 space-y-1 text-sm text-[#5c6478]">
-                  {elegidas.map((factura) => (
-                    <li key={factura.id} className="flex justify-between gap-2">
-                      <span>{factura.numero}</span>
-                      <span className="nowrap">{formatoPeso(factura.saldo)}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <label className="campo"><span className="etiqueta">Fecha</span><input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} /></label>
-            <label className="campo"><span className="etiqueta">Observación</span><input value={observacion} onChange={(e) => setObservacion(e.target.value)} /></label>
-            <label className="campo"><span className="etiqueta">Monto que pagó la jefa</span><input value={monto} onChange={(e) => setMonto(textoMonto(e.target.value))} inputMode="numeric" placeholder="$ 0" /></label>
-            {mensaje && <p className="aviso">{mensaje}</p>}
-            <button className="btn btn-solido w-full" onClick={() => void registrar()}>Registrar pago</button>
-          </aside>
-          <div className="order-2 min-h-0 lg:order-1">
-            <div className="tabla-scroll escritorio-solo rounded-xl border border-[var(--linea)]">
-              <table className="tabla">
-                <thead><tr><th></th><th>Fecha</th><th>Factura</th><th className="text-right">Saldo</th></tr></thead>
-                <tbody>
-                  {facturas.map((factura) => (
-                    <tr key={factura.id}>
-                      <td><input className="w-auto" type="checkbox" checked={marcadas.includes(factura.id)} onChange={(e) => setMarcadas(e.target.checked ? [...marcadas, factura.id] : marcadas.filter((id) => id !== factura.id))} /></td>
+    <div className="pago-pantalla">
+      <h1 className="titulo-barra">Registrar pago</h1>
+      <div className="pago-cuerpo">
+        <div className="pago-tabla-caja escritorio-solo">
+          <div className="tabla-scroll">
+            <table className="tabla pago-tabla">
+              <thead>
+                <tr>
+                  <th className="pago-col-check" />
+                  <th>Fecha</th>
+                  <th>Factura</th>
+                  <th>Saldo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {facturas.length === 0 && (
+                  <tr><td colSpan={4}>{proveedorId ? "Este proveedor no tiene saldo pendiente." : "Seleccione un proveedor."}</td></tr>
+                )}
+                {facturas.map((factura) => {
+                  const marcada = marcadas.includes(factura.id);
+                  return (
+                    <tr key={factura.id} className={marcada ? "pago-fila-activa" : ""} onClick={() => marcar(factura.id, !marcada)}>
+                      <td className="pago-col-check">
+                        <input
+                          className="w-auto"
+                          type="checkbox"
+                          checked={marcada}
+                          onChange={(e) => marcar(factura.id, e.target.checked)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </td>
                       <td className="nowrap">{fechaCorta(factura.fecha_ingreso)}</td>
                       <td className="nowrap">{factura.numero}</td>
-                      <td className="text-right nowrap">{formatoPeso(factura.saldo)}</td>
+                      <td className="nowrap saldo-rojo">{formatoPeso(factura.saldo)}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="lista-cartas movil-solo">
-              {facturas.length === 0 && <p className="pendientes-vacio">Elija un proveedor para ver sus facturas.</p>}
-              {facturas.map((factura) => {
-                const marcada = marcadas.includes(factura.id);
-                return (
-                  <button
-                    key={factura.id}
-                    type="button"
-                    className={`carta-factura ${marcada ? "elegida" : ""}`}
-                    onClick={() => setMarcadas(marcada ? marcadas.filter((id) => id !== factura.id) : [...marcadas, factura.id])}
-                  >
-                    <div className="carta-factura-arriba">
-                      <span className="carta-factura-numero">{factura.numero}</span>
-                      <span className="carta-factura-estado">{marcada ? "Marcada" : "Marcar"}</span>
-                    </div>
-                    <div className="carta-factura-abajo">
-                      <span>{fechaCorta(factura.fecha_ingreso)}</span>
-                      <strong>{formatoPeso(factura.saldo)}</strong>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
+
+        <div className="lista-cartas movil-solo pago-cartas">
+          {facturas.length === 0 && <p className="pendientes-vacio">{proveedorId ? "Sin saldo pendiente." : "Seleccione un proveedor."}</p>}
+          {facturas.map((factura) => {
+            const marcada = marcadas.includes(factura.id);
+            return (
+              <button
+                key={factura.id}
+                type="button"
+                className={`carta-factura ${marcada ? "elegida" : ""}`}
+                onClick={() => marcar(factura.id, !marcada)}
+              >
+                <div className="carta-factura-arriba">
+                  <span className="carta-factura-numero">{factura.numero}</span>
+                  <span className="carta-factura-estado">{marcada ? "Marcada" : "Marcar"}</span>
+                </div>
+                <div className="carta-factura-abajo">
+                  <span>{fechaCorta(factura.fecha_ingreso)}</span>
+                  <strong>{formatoPeso(factura.saldo)}</strong>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <aside className="pago-form">
+          <label className="campo">
+            <span className="etiqueta">Proveedor</span>
+            <select value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
+              <option value="">Seleccione</option>
+              {proveedores.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
+            </select>
+          </label>
+          <p className="pago-total">Total {formatoPeso(suma)}</p>
+          <p className="pago-medio">Medio: transferencia</p>
+          <label className="campo">
+            <span className="etiqueta">Fecha</span>
+            <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+          </label>
+          <label className="campo">
+            <span className="etiqueta">Observación</span>
+            <input value={observacion} onChange={(e) => setObservacion(e.target.value)} />
+          </label>
+          <label className="campo">
+            <span className="etiqueta">Monto que pagó la jefa</span>
+            <input value={monto} onChange={(e) => setMonto(textoMonto(e.target.value))} inputMode="numeric" placeholder="$ 0" />
+          </label>
+          {mensaje && <p className={`pago-aviso ${mensaje.startsWith("Pago registrado") ? "pago-aviso-ok" : ""}`}>{mensaje}</p>}
+          <button className="btn btn-solido pago-boton" onClick={() => void registrar()}>Registrar pago</button>
+        </aside>
       </div>
     </div>
   );

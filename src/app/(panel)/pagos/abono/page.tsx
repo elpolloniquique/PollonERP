@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fechaCorta, hoySantiago } from "@/lib/fechas";
-import { formatoPeso, parseMonto, textoMonto } from "@/lib/formato";
+import { estadoVisible, formatoPeso, parseMonto, textoMonto } from "@/lib/formato";
 import { aplicarPago } from "@/lib/pago";
 import { Perfil, supabase } from "@/lib/supabase";
 
@@ -56,68 +56,84 @@ export default function Abono() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-2 sm:p-3">
-      <div className="marco flex min-h-0 flex-1 flex-col overflow-hidden">
-        <h1 className="titulo-barra">Abono parcial</h1>
-        <div className="grid min-h-0 flex-1 gap-3 overflow-auto p-3 lg:grid-cols-[minmax(0,1fr)_300px]">
-          <aside className="order-1 space-y-3 lg:order-2">
-            <label className="campo"><span className="etiqueta">Proveedor</span>
-              <select value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
-                <option value="">Seleccione</option>
-                {proveedores.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
-              </select>
-            </label>
-            <label className="campo"><span className="etiqueta">Monto que pagó la jefa</span><input value={monto} onChange={(e) => setMonto(textoMonto(e.target.value))} inputMode="numeric" placeholder="$ 0" /></label>
-            <label className="campo"><span className="etiqueta">Fecha</span><input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} /></label>
-            {factura && (
-              <div className="rounded-xl border border-[var(--linea)] p-3">
-                <p className="font-semibold">{factura.numero}</p>
-                <p className="mt-1 text-sm text-[#5c6478]">{fechaCorta(factura.fecha_ingreso)}</p>
-                <p className="mt-2">Saldo que queda <strong>{formatoPeso(queda)}</strong></p>
-              </div>
-            )}
-            {mensaje && <p className="aviso">{mensaje}</p>}
-            <button className="btn btn-solido w-full" onClick={() => void registrar()}>Registrar pago {formatoPeso(abono)}</button>
-          </aside>
-          <div className="order-2 min-h-0 lg:order-1">
-            <div className="tabla-scroll escritorio-solo rounded-xl border border-[var(--linea)]">
-              <table className="tabla">
-                <thead><tr><th></th><th>Fecha</th><th>Factura</th><th>Saldo</th><th>Estado</th></tr></thead>
-                <tbody>
-                  {facturas.map((item) => (
-                    <tr key={item.id} className={marcada === item.id ? "elegida" : ""}>
-                      <td><input className="w-auto" type="radio" name="factura" checked={marcada === item.id} onChange={() => setMarcada(item.id)} /></td>
-                      <td className="nowrap">{fechaCorta(item.fecha_ingreso)}</td>
-                      <td className="nowrap">{item.numero}</td>
-                      <td className="nowrap">{formatoPeso(item.saldo)}</td>
-                      <td>{item.estado === "pago_parcial" ? "Pago parcial" : "Pendiente"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="lista-cartas movil-solo">
-              {facturas.length === 0 && <p className="pendientes-vacio">Elija un proveedor para ver sus facturas.</p>}
-              {facturas.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`carta-factura ${marcada === item.id ? "elegida" : ""}`}
-                  onClick={() => setMarcada(item.id)}
-                >
-                  <div className="carta-factura-arriba">
-                    <span className="carta-factura-numero">{item.numero}</span>
-                    <span className="carta-factura-estado">{item.estado === "pago_parcial" ? "Pago parcial" : "Pendiente"}</span>
-                  </div>
-                  <div className="carta-factura-abajo">
-                    <span>{fechaCorta(item.fecha_ingreso)}</span>
-                    <strong>{formatoPeso(item.saldo)}</strong>
-                  </div>
-                </button>
-              ))}
-            </div>
+    <div className="pago-pantalla">
+      <h1 className="titulo-barra">Abono parcial</h1>
+      <div className="pago-cuerpo pago-cuerpo-ancho">
+        <div className="pago-tabla-caja escritorio-solo">
+          <div className="tabla-scroll">
+            <table className="tabla pago-tabla">
+              <thead>
+                <tr>
+                  <th className="pago-col-check" />
+                  <th>Fecha</th>
+                  <th>Factura</th>
+                  <th>Saldo</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {facturas.length === 0 && (
+                  <tr><td colSpan={5}>{proveedorId ? "Este proveedor no tiene saldo pendiente." : "Seleccione un proveedor."}</td></tr>
+                )}
+                {facturas.map((item) => (
+                  <tr key={item.id} className={marcada === item.id ? "pago-fila-activa" : ""} onClick={() => setMarcada(item.id)}>
+                    <td className="pago-col-check">
+                      <input className="w-auto" type="radio" name="factura" checked={marcada === item.id} onChange={() => setMarcada(item.id)} onClick={(e) => e.stopPropagation()} />
+                    </td>
+                    <td className="nowrap">{fechaCorta(item.fecha_ingreso)}</td>
+                    <td className="nowrap">{item.numero}</td>
+                    <td className="nowrap saldo-rojo">{formatoPeso(item.saldo)}</td>
+                    <td className="nowrap">{estadoVisible(item.estado)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
+
+        <div className="lista-cartas movil-solo pago-cartas">
+          {facturas.length === 0 && <p className="pendientes-vacio">{proveedorId ? "Sin saldo pendiente." : "Seleccione un proveedor."}</p>}
+          {facturas.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`carta-factura ${marcada === item.id ? "elegida" : ""}`}
+              onClick={() => setMarcada(item.id)}
+            >
+              <div className="carta-factura-arriba">
+                <span className="carta-factura-numero">{item.numero}</span>
+                <span className="carta-factura-estado">{estadoVisible(item.estado)}</span>
+              </div>
+              <div className="carta-factura-abajo">
+                <span>{fechaCorta(item.fecha_ingreso)}</span>
+                <strong>{formatoPeso(item.saldo)}</strong>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <aside className="pago-form">
+          <label className="campo">
+            <span className="etiqueta">Proveedor</span>
+            <select value={proveedorId} onChange={(e) => setProveedorId(e.target.value)}>
+              <option value="">Seleccione</option>
+              {proveedores.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
+            </select>
+          </label>
+          <label className="campo">
+            <span className="etiqueta">Monto que pagó la jefa</span>
+            <input value={monto} onChange={(e) => setMonto(textoMonto(e.target.value))} inputMode="numeric" placeholder="$ 0" />
+          </label>
+          <label className="campo">
+            <span className="etiqueta">Fecha</span>
+            <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+          </label>
+          {factura && (
+            <p className="pago-queda">Saldo que queda <strong>{formatoPeso(queda)}</strong></p>
+          )}
+          {mensaje && <p className={`pago-aviso ${mensaje.startsWith("Abono registrado") ? "pago-aviso-ok" : ""}`}>{mensaje}</p>}
+          <button className="btn btn-solido pago-boton" onClick={() => void registrar()}>Registrar pago {formatoPeso(abono)}</button>
+        </aside>
       </div>
     </div>
   );
