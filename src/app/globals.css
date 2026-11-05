@@ -1221,7 +1221,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 18px;
+  padding: 20px;
 }
 .prov-ficha-fondo {
   position: absolute;
@@ -1234,8 +1234,11 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   position: relative;
   z-index: 1;
   display: flex;
-  width: min(920px, 100%);
-  max-height: min(92dvh, 820px);
+  width: 880px;
+  max-width: calc(100vw - 40px);
+  height: 720px;
+  max-height: calc(100dvh - 40px);
+  flex: 0 0 auto;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid #cfd5ea;
@@ -1295,12 +1298,23 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 }
 .prov-ficha-modal .ficha-cuerpo {
   min-height: 0;
-  flex: 1;
+  flex: 1 1 auto;
+  overflow: auto;
 }
 .prov-ficha-modal .ficha-pie {
   position: static;
+  flex-shrink: 0;
+}
+.prov-ficha-modal .ficha-cabeza,
+.prov-ficha-modal .ficha-pestanas {
+  flex-shrink: 0;
 }
 .ficha-carga {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
   padding: 28px 20px;
   text-align: center;
   color: #6b7289;
@@ -1336,23 +1350,60 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   .prov-ficha-capa {
     padding: 0;
     align-items: stretch;
+    justify-content: stretch;
   }
   .prov-ficha-modal {
     width: 100%;
-    max-height: none;
+    max-width: 100%;
     height: 100%;
+    max-height: 100%;
     border-radius: 0;
+    border: 0;
     box-shadow: none;
   }
   .prov-ficha-modal .ficha-cabeza {
     flex-wrap: wrap;
-    padding: 12px;
+    padding: 10px 12px;
   }
   .prov-ficha-modal .ficha-cabeza-lado {
     width: 100%;
     justify-content: space-between;
   }
   .prov-ficha-modal .ficha-titulo { font-size: 17px; }
+  .prov-ficha-modal .ficha-pestanas {
+    padding: 0 4px;
+  }
+  .prov-ficha-modal .ficha-pestana {
+    padding: 10px 9px;
+    font-size: 11px;
+  }
+  .prov-ficha-modal .ficha-cuerpo {
+    padding: 8px;
+  }
+  .prov-ficha-modal .ficha-pie {
+    padding: 8px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+  .prov-ficha-modal .ficha-pie .btn-barra,
+  .prov-ficha-modal .ficha-pie-acciones .btn-barra {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 0;
+  }
+  .prov-ficha-modal .ficha-pie-acciones {
+    width: 100%;
+    margin-left: 0;
+  }
+  .prov-ficha-modal .ficha-grilla {
+    grid-template-columns: 1fr;
+  }
+  .prov-ficha-modal .ficha-span-2,
+  .prov-ficha-modal .ficha-span-3 {
+    grid-column: auto;
+  }
+  .prov-ficha-modal .tabla-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .prov-capa {

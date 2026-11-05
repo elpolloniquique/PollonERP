@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { estadoVisible, formatoPeso } from "@/lib/formato";
 import { fechaCorta } from "@/lib/fechas";
 import { mostrarRut, normalizarRut } from "@/lib/rut";
@@ -55,8 +55,13 @@ export function FichaProveedor({ id, saldo = 0, modo = "pagina", onCerrar, onGua
   const [aviso, setAviso] = useState("");
   const [puede, setPuede] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const omitirRecarga = useRef(false);
 
   useEffect(() => {
+    if (omitirRecarga.current && id !== "nuevo") {
+      omitirRecarga.current = false;
+      return;
+    }
     setPestana("Datos");
     setError("");
     setAviso("");
@@ -108,7 +113,10 @@ export function FichaProveedor({ id, saldo = 0, modo = "pagina", onCerrar, onGua
     const guardado = data as Proveedor;
     setDatos(guardado);
     setAviso("Proveedor guardado.");
-    if (guardado.id) onGuardado?.(guardado.id);
+    if (guardado.id) {
+      if (nuevo) omitirRecarga.current = true;
+      onGuardado?.(guardado.id);
+    }
     if (nuevo && guardado.id && modo === "pagina") {
       window.location.href = `/proveedores/${guardado.id}`;
     }
@@ -123,18 +131,13 @@ export function FichaProveedor({ id, saldo = 0, modo = "pagina", onCerrar, onGua
     onGuardado?.(datos.id);
   }
 
-  if (!datos) {
-    const carga = (
-      <div className="ficha-carga">{error || "Cargando…"}</div>
-    );
-    if (modo === "modal") return <div className="prov-ficha-modal">{carga}</div>;
-    return <main className="p-4">{error || "Cargando…"}</main>;
-  }
-
-  const poner = (campo: keyof Proveedor, valor: string | number | boolean) => setDatos({ ...datos, [campo]: valor });
-  const rutVisible = datos.rut ? (datos.rut.includes(".") ? datos.rut : mostrarRut(datos.rut)) : "";
-  const titulo = datos.id ? datos.nombre : "Nuevo proveedor";
-  const bloquearExtra = !datos.id;
+  const poner = (campo: keyof Proveedor, valor: string | number | boolean) => {
+    if (!datos) return;
+    setDatos({ ...datos, [campo]: valor });
+  };
+  const rutVisible = datos?.rut ? (datos.rut.includes(".") ? datos.rut : mostrarRut(datos.rut)) : "";
+  const titulo = datos?.id ? datos.nombre : (nuevo ? "Nuevo proveedor" : "Cargando…");
+  const bloquearExtra = !datos?.id;
 
   const cuerpo = (
     <>
@@ -144,16 +147,18 @@ export function FichaProveedor({ id, saldo = 0, modo = "pagina", onCerrar, onGua
           {modo === "modal" && <p className="ficha-kicker">Ficha de proveedor</p>}
           <div className="ficha-titulo-fila">
             <h1 className="ficha-titulo">{titulo}</h1>
-            {!nuevo && (
+            {datos && !nuevo && (
               <span className={`estado-badge ${datos.activo ? "estado-pagado" : "estado-anulado"}`}>
                 {datos.activo ? "Activo" : "Inactivo"}
               </span>
             )}
           </div>
           <p className="ficha-sub">
-            {nuevo
-              ? "Complete los datos y guarde para habilitar el resto de pestañas"
-              : `${rutVisible || "Sin RUT"} · ${datos.dias_credito} días de crédito`}
+            {!datos
+              ? "Cargando ficha…"
+              : nuevo
+                ? "Complete los datos y guarde para habilitar el resto de pestañas"
+                : `${rutVisible || "Sin RUT"} · ${datos.dias_credito} días de crédito`}
           </p>
         </div>
         <div className="ficha-cabeza-lado">
@@ -181,72 +186,78 @@ export function FichaProveedor({ id, saldo = 0, modo = "pagina", onCerrar, onGua
       </nav>
 
       <div className="ficha-cuerpo">
-        {pestana === "Datos" && (
-          <div className="ficha-bloque">
-            <div className="ficha-grilla">
-              <Campo nombre="Nombre" valor={datos.nombre} onChange={(v) => poner("nombre", v)} />
-              <Campo nombre="Rubro" valor={datos.rubro} onChange={(v) => poner("rubro", v)} />
-              <Campo nombre="RUT" valor={rutVisible} onChange={(v) => poner("rut", v)} />
-              <Campo nombre="Razón social" valor={datos.razon_social} onChange={(v) => poner("razon_social", v)} clase="ficha-span-2" />
-              <Campo nombre="Giro" valor={datos.giro} onChange={(v) => poner("giro", v)} />
-              <Campo nombre="Contacto" valor={datos.contacto} onChange={(v) => poner("contacto", v)} />
-              <Campo nombre="Teléfono" valor={datos.telefono} onChange={(v) => poner("telefono", v)} />
-              <Campo nombre="Correo de cobranza" valor={datos.correo_cobranza} onChange={(v) => poner("correo_cobranza", v)} />
-              <Campo nombre="Dirección" valor={datos.direccion} onChange={(v) => poner("direccion", v)} clase="ficha-span-3" />
-              <label className="campo ficha-span-3">
-                <span className="etiqueta">Observaciones</span>
-                <textarea rows={2} value={datos.observaciones} onChange={(e) => poner("observaciones", e.target.value)} />
-              </label>
-            </div>
-            <div className="ficha-fila-estado">
-              <Campo nombre="Días de crédito" valor={String(datos.dias_credito)} onChange={(v) => poner("dias_credito", Number(v))} />
-              <label className="ficha-check">
-                <input type="checkbox" checked={datos.activo} onChange={(e) => poner("activo", e.target.checked)} />
-                Proveedor activo
-              </label>
-            </div>
-          </div>
-        )}
-
-        {pestana === "Pago" && (
-          bloquearExtra ? <p className="ficha-ayuda">Guarde el proveedor para completar los datos de pago.</p> : (
-            <div className="ficha-bloque ficha-bloque-angosto">
-              <div className="ficha-grilla">
-                <Campo nombre="Banco" valor={datos.banco} onChange={(v) => poner("banco", v)} />
-                <Campo nombre="Tipo de cuenta" valor={datos.tipo_cuenta} onChange={(v) => poner("tipo_cuenta", v)} />
-                <Campo nombre="Número de cuenta" valor={datos.numero_cuenta} onChange={(v) => poner("numero_cuenta", v)} clase="ficha-span-2" />
+        {!datos ? (
+          <div className="ficha-carga">{error || "Cargando…"}</div>
+        ) : (
+          <>
+            {pestana === "Datos" && (
+              <div className="ficha-bloque">
+                <div className="ficha-grilla">
+                  <Campo nombre="Nombre" valor={datos.nombre} onChange={(v) => poner("nombre", v)} />
+                  <Campo nombre="Rubro" valor={datos.rubro} onChange={(v) => poner("rubro", v)} />
+                  <Campo nombre="RUT" valor={rutVisible} onChange={(v) => poner("rut", v)} />
+                  <Campo nombre="Razón social" valor={datos.razon_social} onChange={(v) => poner("razon_social", v)} clase="ficha-span-2" />
+                  <Campo nombre="Giro" valor={datos.giro} onChange={(v) => poner("giro", v)} />
+                  <Campo nombre="Contacto" valor={datos.contacto} onChange={(v) => poner("contacto", v)} />
+                  <Campo nombre="Teléfono" valor={datos.telefono} onChange={(v) => poner("telefono", v)} />
+                  <Campo nombre="Correo de cobranza" valor={datos.correo_cobranza} onChange={(v) => poner("correo_cobranza", v)} />
+                  <Campo nombre="Dirección" valor={datos.direccion} onChange={(v) => poner("direccion", v)} clase="ficha-span-3" />
+                  <label className="campo ficha-span-3">
+                    <span className="etiqueta">Observaciones</span>
+                    <textarea rows={2} value={datos.observaciones} onChange={(e) => poner("observaciones", e.target.value)} />
+                  </label>
+                </div>
+                <div className="ficha-fila-estado">
+                  <Campo nombre="Días de crédito" valor={String(datos.dias_credito)} onChange={(v) => poner("dias_credito", Number(v))} />
+                  <label className="ficha-check">
+                    <input type="checkbox" checked={datos.activo} onChange={(e) => poner("activo", e.target.checked)} />
+                    Proveedor activo
+                  </label>
+                </div>
               </div>
-              <button
-                type="button"
-                className="btn-barra"
-                onClick={() => void navigator.clipboard.writeText(`Banco: ${datos.banco}\nTipo: ${datos.tipo_cuenta}\nCuenta: ${datos.numero_cuenta}`)}
-              >
-                Copiar datos de pago
-              </button>
-            </div>
-          )
-        )}
+            )}
 
-        {pestana === "Impuestos" && datos.id && (
-          <Impuestos proveedorId={datos.id} porcentaje={datos.porcentaje_iva} onPorcentaje={(v) => poner("porcentaje_iva", v)} />
-        )}
-        {pestana === "Rapel" && (
-          bloquearExtra ? <p className="ficha-ayuda">Guarde el proveedor para configurar el rapel.</p> : (
-            <div className="ficha-bloque ficha-bloque-angosto">
-              <label className="ficha-check">
-                <input type="checkbox" checked={datos.rapel_activo} onChange={(e) => poner("rapel_activo", e.target.checked)} />
-                Rapel activo
-              </label>
-              <p className="ficha-ayuda">Si está activo, este proveedor aparecerá en la opción Rapel.</p>
-            </div>
-          )
-        )}
-        {pestana === "Productos" && datos.id && <Productos proveedorId={datos.id} />}
-        {pestana === "Facturas" && datos.id && <Facturas proveedorId={datos.id} />}
-        {pestana === "Cuenta corriente" && datos.id && <Cuenta proveedorId={datos.id} />}
+            {pestana === "Pago" && (
+              bloquearExtra ? <p className="ficha-ayuda">Guarde el proveedor para completar los datos de pago.</p> : (
+                <div className="ficha-bloque ficha-bloque-angosto">
+                  <div className="ficha-grilla">
+                    <Campo nombre="Banco" valor={datos.banco} onChange={(v) => poner("banco", v)} />
+                    <Campo nombre="Tipo de cuenta" valor={datos.tipo_cuenta} onChange={(v) => poner("tipo_cuenta", v)} />
+                    <Campo nombre="Número de cuenta" valor={datos.numero_cuenta} onChange={(v) => poner("numero_cuenta", v)} clase="ficha-span-2" />
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-barra"
+                    onClick={() => void navigator.clipboard.writeText(`Banco: ${datos.banco}\nTipo: ${datos.tipo_cuenta}\nCuenta: ${datos.numero_cuenta}`)}
+                  >
+                    Copiar datos de pago
+                  </button>
+                </div>
+              )
+            )}
 
-        {bloquearExtra && pestana !== "Datos" && pestana !== "Pago" && pestana !== "Rapel" && (
-          <p className="ficha-ayuda">Guarde el proveedor para usar esta sección.</p>
+            {pestana === "Impuestos" && datos.id && (
+              <Impuestos proveedorId={datos.id} porcentaje={datos.porcentaje_iva} onPorcentaje={(v) => poner("porcentaje_iva", v)} />
+            )}
+            {pestana === "Rapel" && (
+              bloquearExtra ? <p className="ficha-ayuda">Guarde el proveedor para configurar el rapel.</p> : (
+                <div className="ficha-bloque ficha-bloque-angosto">
+                  <label className="ficha-check">
+                    <input type="checkbox" checked={datos.rapel_activo} onChange={(e) => poner("rapel_activo", e.target.checked)} />
+                    Rapel activo
+                  </label>
+                  <p className="ficha-ayuda">Si está activo, este proveedor aparecerá en la opción Rapel.</p>
+                </div>
+              )
+            )}
+            {pestana === "Productos" && datos.id && <Productos proveedorId={datos.id} />}
+            {pestana === "Facturas" && datos.id && <Facturas proveedorId={datos.id} />}
+            {pestana === "Cuenta corriente" && datos.id && <Cuenta proveedorId={datos.id} />}
+
+            {bloquearExtra && pestana !== "Datos" && pestana !== "Pago" && pestana !== "Rapel" && (
+              <p className="ficha-ayuda">Guarde el proveedor para usar esta sección.</p>
+            )}
+          </>
         )}
 
         {error && <p className="error">{error}</p>}
@@ -260,10 +271,10 @@ export function FichaProveedor({ id, saldo = 0, modo = "pagina", onCerrar, onGua
           <Link className="btn-barra" href="/proveedores">Volver</Link>
         )}
         <div className="ficha-pie-acciones">
-          {puede && !nuevo && datos.activo && (
+          {puede && datos && !nuevo && datos.activo && (
             <button type="button" className="btn-barra" onClick={() => void desactivar()}>Desactivar</button>
           )}
-          {puede && ["Datos", "Pago", "Rapel", "Impuestos"].includes(pestana) && (
+          {puede && datos && ["Datos", "Pago", "Rapel", "Impuestos"].includes(pestana) && (
             <button type="button" className="btn-barra btn-barra-principal" disabled={guardando} onClick={() => void guardar()}>
               {guardando ? "Guardando…" : "Guardar ficha"}
             </button>
