@@ -13,6 +13,8 @@
   --peligro: #c5364a;
   --fila: #eef2ff;
   --ok: #0f7a4a;
+  --radio: 4px;
+  --radio-md: 6px;
   color-scheme: light;
 }
 
@@ -31,7 +33,7 @@ button { cursor: pointer; }
 input, select, textarea {
   background: #fff;
   border: 1px solid var(--linea);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 5px 7px;
   width: 100%;
 }
@@ -41,7 +43,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   border: 1px solid #c9cffb;
   background: var(--suave);
   color: var(--acento-oscuro);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 6px 10px;
   white-space: nowrap;
 }
@@ -55,7 +57,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .marco {
   background: var(--papel);
   border: 1px solid var(--linea);
-  border-radius: 12px;
+  border-radius: 6px;
   overflow: hidden;
 }
 .titulo-barra {
@@ -160,7 +162,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .menu-marca-punto {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
+  border-radius: 50%;
   background: #5b6cff;
   box-shadow: 0 0 0 4px rgba(91, 108, 255, 0.18);
   flex-shrink: 0;
@@ -197,7 +199,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   display: flex;
   align-items: center;
   gap: 10px;
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 9px 12px 9px 14px;
   color: #c4cbe3;
   text-decoration: none;
@@ -216,7 +218,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .menu-enlace-barra {
   width: 3px;
   height: 14px;
-  border-radius: 999px;
+  border-radius: 4px;
   background: transparent;
   flex-shrink: 0;
 }
@@ -228,7 +230,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .menu-salir {
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.04);
   color: #d7dced;
   padding: 9px 12px;
@@ -277,7 +279,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   width: 34px;
   height: 34px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.06);
   color: #fff;
   font-size: 22px;
@@ -292,7 +294,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   justify-content: center;
   gap: 5px;
   border: 1px solid var(--linea);
-  border-radius: 10px;
+  border-radius: 4px;
   background: #fff;
   padding: 0;
 }
@@ -300,7 +302,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   display: block;
   width: 16px;
   height: 2px;
-  border-radius: 999px;
+  border-radius: 4px;
   background: var(--tinta);
 }
 
@@ -327,7 +329,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .chip {
   flex-shrink: 0;
   border: 1px solid var(--linea);
-  border-radius: 999px;
+  border-radius: 4px;
   background: #fff;
   color: var(--tinta);
   padding: 8px 14px;
@@ -408,7 +410,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   width: 228px;
   flex-shrink: 0;
   border: 1px solid var(--linea);
-  border-radius: 12px;
+  border-radius: 6px;
   background: #fff;
   padding: 12px;
 }
@@ -423,7 +425,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .carta-factura {
   width: 100%;
   border: 1px solid var(--linea);
-  border-radius: 12px;
+  border-radius: 6px;
   background: #fff;
   padding: 12px;
   text-align: left;
@@ -441,7 +443,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 }
 .carta-factura-numero { font-weight: 700; }
 .carta-factura-estado {
-  border-radius: 999px;
+  border-radius: 4px;
   background: var(--suave);
   color: var(--acento-oscuro);
   padding: 3px 8px;
@@ -465,7 +467,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 }
 .factura-linea-carta {
   border: 1px solid var(--linea);
-  border-radius: 12px;
+  border-radius: 6px;
   background: #fff;
   padding: 12px;
   text-align: left;
@@ -524,7 +526,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
     padding: 8px 10px;
     vertical-align: middle;
   }
-  .marco { border-radius: 14px; }
+  .marco { border-radius: 6px; }
 
   .pendientes-chips {
     display: flex;
@@ -603,7 +605,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--linea);
-  border-radius: 14px;
+  border-radius: 6px;
   background: #fff;
   box-shadow: 0 10px 30px rgba(18, 20, 28, 0.05);
 }
@@ -649,7 +651,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .estado-badge {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: 4px;
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 700;
@@ -683,14 +685,14 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   margin-left: 4px;
   padding: 4px 8px;
   border: 1px solid #e3e6f2;
-  border-radius: 12px;
+  border-radius: 6px;
   background: #fff;
 }
 .facturas-barra-nav {
   margin-left: auto;
   padding: 4px 6px;
   border: 1px solid #e3e6f2;
-  border-radius: 12px;
+  border-radius: 6px;
   background: #fff;
 }
 .btn-barra {
@@ -698,19 +700,19 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: 36px;
   border: 1px solid #c9cffb;
-  border-radius: 10px;
+  border-radius: var(--radio);
   background: #fff;
   color: #16206a;
   padding: 0 12px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  box-shadow: 0 1px 2px rgba(18, 20, 28, 0.04);
+  box-shadow: none;
   text-decoration: none;
   white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 .btn-barra:hover {
   background: #eceefe;
@@ -721,15 +723,15 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   cursor: default;
 }
 .btn-barra-principal {
-  min-height: 40px;
+  min-height: 36px;
   border-color: #16206a;
-  background: linear-gradient(135deg, #2436f0 0%, #1a28c4 100%);
+  background: #2436f0;
   color: #fff;
   padding: 0 14px;
-  box-shadow: 0 6px 14px rgba(36, 54, 240, 0.24);
+  box-shadow: none;
 }
 .btn-barra-principal:hover {
-  background: linear-gradient(135deg, #1a28c4 0%, #16206a 100%);
+  background: #1a28c4;
   border-color: #16206a;
   color: #fff;
 }
@@ -762,7 +764,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 }
 .filtro-fecha input {
   min-height: 36px;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 4px 6px;
 }
 .barra-ico {
@@ -802,12 +804,10 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 }
 
 .ed-factura-modal {
-  border: 1px solid rgba(227, 230, 242, 0.9);
-  border-radius: 18px;
+  border: 1px solid #cfd5ea;
+  border-radius: 4px;
   background: #fff;
-  box-shadow:
-    0 24px 60px rgba(18, 20, 28, 0.22),
-    0 2px 0 rgba(255, 255, 255, 0.4) inset;
+  box-shadow: 0 18px 48px rgba(18, 20, 28, 0.26);
 }
 .ed-factura-cabeza {
   display: flex;
@@ -838,7 +838,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   width: 36px;
   height: 36px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 10px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   font-size: 22px;
@@ -866,7 +866,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   width: fit-content;
   min-height: 40px;
   border: 1px solid #c9cffb;
-  border-radius: 10px;
+  border-radius: 4px;
   background: #eceefe;
   color: #16206a;
   padding: 8px 14px;
@@ -887,7 +887,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .ed-factura-campos input,
 .ed-factura-campos select {
   min-height: 40px;
-  border-radius: 10px;
+  border-radius: 4px;
   border-color: #d9deef;
   background: #fff;
   box-shadow: 0 1px 0 rgba(18, 20, 28, 0.02);
@@ -900,7 +900,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   margin: 0 16px;
   overflow: hidden;
   border: 1px solid var(--linea);
-  border-radius: 14px;
+  border-radius: 6px;
   background: #fff;
   box-shadow: 0 8px 24px rgba(18, 20, 28, 0.04);
 }
@@ -915,7 +915,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   font-weight: 700;
 }
 .ed-factura-detalle-cuenta {
-  border-radius: 999px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.16);
   padding: 3px 10px;
   font-size: 11px;
@@ -948,7 +948,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   margin: 12px 16px 0;
   padding: 12px;
   border: 1px solid var(--linea);
-  border-radius: 14px;
+  border-radius: 6px;
   background: #fff;
 }
 .ed-total-bloque { text-align: center; }
@@ -985,7 +985,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   width: 34px;
   height: 34px;
   border: 1px solid #c9cffb;
-  border-radius: 10px;
+  border-radius: 4px;
   background: #eceefe;
   color: #16206a;
   font-weight: 700;
@@ -994,7 +994,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   width: 72px;
   min-height: 34px;
   text-align: center;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 .ed-factura-confirma {
   display: flex;
@@ -1005,7 +1005,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   color: #5c6478;
   font-size: 12px;
 }
-.ed-factura-error { margin: 10px 16px 0; border-radius: 10px; }
+.ed-factura-error { margin: 10px 16px 0; border-radius: 4px; }
 .ed-factura-acciones {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -1017,7 +1017,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 }
 .ed-factura-acciones .btn {
   min-height: 42px;
-  border-radius: 10px;
+  border-radius: 4px;
   font-weight: 650;
 }
 
@@ -1083,7 +1083,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--linea);
-  border-radius: 18px;
+  border-radius: 6px;
   background: #fff;
   box-shadow: 0 16px 40px rgba(18, 20, 28, 0.06);
   transition: width 0.22s ease, max-width 0.22s ease;
@@ -1136,7 +1136,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   flex: 1 1 220px;
   max-width: 320px;
   min-height: 42px;
-  border-radius: 12px;
+  border-radius: 6px;
 }
 .prov-check {
   display: inline-flex;
@@ -1177,17 +1177,17 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   text-align: center !important;
 }
 .btn-barra-ver {
-  min-height: 32px;
-  min-width: 64px;
-  padding: 0 12px;
+  min-height: 30px;
+  min-width: 58px;
+  padding: 0 10px;
   font-size: 12px;
-  border-color: #aeb8f5;
-  background: linear-gradient(135deg, #2436f0 0%, #1a28c4 100%);
+  border-color: #16206a;
+  background: #2436f0;
   color: #fff;
-  box-shadow: 0 4px 10px rgba(36, 54, 240, 0.2);
+  box-shadow: none;
 }
 .btn-barra-ver:hover {
-  background: linear-gradient(135deg, #1a28c4 0%, #16206a 100%);
+  background: #1a28c4;
   border-color: #16206a;
   color: #fff;
 }
@@ -1238,23 +1238,19 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   max-height: min(92dvh, 820px);
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(227, 230, 242, 0.95);
-  border-radius: 18px;
+  border: 1px solid #cfd5ea;
+  border-radius: 4px;
   background: #fff;
-  box-shadow:
-    0 28px 70px rgba(18, 20, 28, 0.28),
-    0 2px 0 rgba(255, 255, 255, 0.35) inset;
+  box-shadow: 0 18px 48px rgba(18, 20, 28, 0.28);
 }
 .prov-ficha-modal .ficha-cabeza {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px 12px;
+  padding: 12px 14px;
   border-bottom: 0;
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgba(91, 108, 255, 0.32), transparent 52%),
-    linear-gradient(135deg, #2436f0 0%, #1a28c4 55%, #16206a 100%);
+  background: linear-gradient(135deg, #2436f0 0%, #1a28c4 55%, #16206a 100%);
   color: #fff;
 }
 .prov-ficha-modal .ficha-kicker {
@@ -1280,10 +1276,10 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 }
 .prov-ficha-modal .ficha-saldo-cabeza {
   margin: 0;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.12);
-  padding: 7px 10px;
+  padding: 6px 9px;
   font-size: 12px;
   font-weight: 650;
   white-space: nowrap;
@@ -1375,7 +1371,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--linea);
-  border-radius: 18px;
+  border-radius: 6px;
   background: #fff;
   box-shadow: 0 18px 48px rgba(18, 20, 28, 0.12);
   transform: translateX(12px);
@@ -1453,7 +1449,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
     z-index: 50;
     width: 100%;
     max-height: min(92dvh, 720px);
-    border-radius: 18px 18px 0 0;
+    border-radius: 6px 6px 0 0;
     transform: translateY(110%);
   }
   .prov-panel-abierto { transform: translateY(0); }
@@ -1479,7 +1475,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--linea);
-  border-radius: 16px;
+  border-radius: 6px;
   background: #fff;
   box-shadow: 0 10px 28px rgba(18, 20, 28, 0.07);
 }
@@ -1521,36 +1517,38 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .ficha-pestanas {
   display: flex;
   flex-shrink: 0;
-  gap: 6px;
+  gap: 0;
   overflow-x: auto;
   border-bottom: 1px solid var(--linea);
-  background: #f4f6fb;
-  padding: 8px 10px;
+  background: #eef0f8;
+  padding: 0 8px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
 .ficha-pestanas::-webkit-scrollbar { display: none; }
 .ficha-pestana {
   flex-shrink: 0;
-  border: 1px solid transparent;
-  border-radius: 999px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   background: transparent;
   color: #5c6478;
-  padding: 7px 12px;
+  margin-bottom: -1px;
+  padding: 10px 12px;
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
-  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
 }
 .ficha-pestana:hover:not(:disabled) {
-  background: #fff;
-  border-color: #d7dcf0;
+  background: rgba(255, 255, 255, 0.55);
+  color: #2436f0;
 }
 .ficha-pestana.activa {
-  background: #2436f0;
-  border-color: #2436f0;
-  color: #fff;
-  box-shadow: 0 4px 10px rgba(36, 54, 240, 0.22);
+  background: #fff;
+  color: #2436f0;
+  border-bottom-color: #2436f0;
+  box-shadow: none;
 }
 .ficha-pestana:disabled { opacity: 0.35; }
 .ficha-cuerpo {
@@ -1568,7 +1566,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   flex-direction: column;
   gap: 8px;
   border: 1px solid var(--linea);
-  border-radius: 12px;
+  border-radius: 6px;
   background: #fbfcff;
   padding: 10px;
 }
@@ -1592,7 +1590,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .ficha-bloque textarea {
   min-height: 36px;
   border: 1px solid #d7dcf0;
-  border-radius: 9px;
+  border-radius: 4px;
   background: #fff;
   padding: 7px 9px;
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
@@ -1618,7 +1616,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   gap: 8px;
   min-height: 36px;
   border: 1px solid #d7dcf0;
-  border-radius: 9px;
+  border-radius: 4px;
   background: #fff;
   color: #3e4558;
   padding: 0 11px;
@@ -1644,7 +1642,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 .ficha-buscar {
   max-width: 260px;
   min-height: 36px;
-  border-radius: 9px;
+  border-radius: 4px;
 }
 .ficha-tabla th,
 .ficha-tabla td {
@@ -1684,12 +1682,12 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   .ficha-tarjeta {
     width: 100%;
     max-height: none;
-    border-radius: 12px;
+    border-radius: 6px;
   }
   .ficha-cabeza { padding: 10px 12px 8px; }
   .ficha-titulo { font-size: 17px; }
   .ficha-cuerpo { padding: 8px; }
-  .ficha-bloque { padding: 8px; border-radius: 10px; }
+  .ficha-bloque { padding: 8px; border-radius: 4px; }
   .ficha-grilla { grid-template-columns: 1fr 1fr; gap: 8px; }
   .ficha-span-2,
   .ficha-span-3 { grid-column: 1 / -1; }
