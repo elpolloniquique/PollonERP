@@ -1234,7 +1234,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   padding: 2px 0 12px;
 }
 .prov-col-accion {
-  width: 88px;
+  width: 130px;
   text-align: center !important;
 }
 .btn-barra-ver {
@@ -1307,7 +1307,7 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   font-variant-numeric: tabular-nums;
 }
 .prov-carta-btn {
-  width: 100%;
+  flex: 1;
   min-height: 40px;
   border: 1.5px solid #2436f0;
   border-radius: 4px;
@@ -1319,6 +1319,97 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
 }
 .prov-carta-btn:hover {
   background: #eceefe;
+}
+.prov-carta-acciones,
+.prov-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.prov-carta-acciones { width: 100%; }
+.prov-btn-eliminar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #efc3c7;
+  border-radius: 4px;
+  background: #fff;
+  color: #c5364a;
+}
+.prov-btn-eliminar:hover {
+  background: #fff1f2;
+  border-color: #e8a0a7;
+}
+.prov-borrar-capa {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.prov-borrar-modal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: min(420px, 100%);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #cfd5ea;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(18, 20, 28, 0.28);
+}
+.prov-borrar-cabeza {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #c5364a 0%, #9e2b3b 100%);
+  color: #fff;
+}
+.prov-borrar-cabeza .prov-kicker { color: rgba(255, 255, 255, 0.78); }
+.prov-borrar-titulo {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.prov-borrar-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+.prov-borrar-cuerpo p {
+  margin: 0;
+  color: #3e4558;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.prov-borrar-pie {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--linea);
+  background: #f7f8fd;
+  padding: 10px 12px;
+}
+.prov-borrar-confirmar {
+  border-color: #9e2b3b;
+  background: #c5364a;
+  color: #fff;
+}
+.prov-borrar-confirmar:hover {
+  background: #9e2b3b;
+  border-color: #9e2b3b;
+  color: #fff;
 }
 .prov-nombre-btn {
   border: 0;

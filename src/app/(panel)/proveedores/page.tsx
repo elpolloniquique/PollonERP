@@ -13,13 +13,20 @@ export default function Proveedores() {
   const [verInactivos, setVerInactivos] = useState(false);
   const [texto, setTexto] = useState("");
   const [fichaId, setFichaId] = useState<string | null>(null);
+  const [puedeEliminar, setPuedeEliminar] = useState(false);
+  const [borrar, setBorrar] = useState<Fila | null>(null);
+  const [clave, setClave] = useState("");
+  const [errorBorrar, setErrorBorrar] = useState("");
+  const [borrando, setBorrando] = useState(false);
 
   const cargar = useCallback(async () => {
     const { data: usuario } = await supabase().auth.getUser();
     if (!usuario.user) return;
-    const perfil = await supabase().from("perfiles").select("empresa_id").eq("id", usuario.user.id).single();
-    const id = (perfil.data as Pick<Perfil, "empresa_id"> | null)?.empresa_id;
+    const perfil = await supabase().from("perfiles").select("empresa_id, puede_eliminar").eq("id", usuario.user.id).single();
+    const actual = perfil.data as Pick<Perfil, "empresa_id" | "puede_eliminar"> | null;
+    const id = actual?.empresa_id;
     if (!id) return;
+    setPuedeEliminar(Boolean(actual.puede_eliminar));
     const [proveedores, facturas] = await Promise.all([
       supabase().from("proveedores").select("id, nombre, rut, activo, rapel_activo").eq("empresa_id", id).order("nombre"),
       supabase().from("facturas").select("proveedor_id, saldo").eq("empresa_id", id).in("estado", ["pendiente", "pago_parcial"]),
@@ -44,6 +51,52 @@ export default function Proveedores() {
   function cerrarFicha() {
     setFichaId(null);
     void cargar();
+  }
+
+  function abrirBorrar(fila: Fila) {
+    setBorrar(fila);
+    setClave("");
+    setErrorBorrar("");
+  }
+
+  function cerrarBorrar() {
+    if (borrando) return;
+    setBorrar(null);
+    setClave("");
+    setErrorBorrar("");
+  }
+
+  async function confirmarBorrar() {
+    if (!borrar) return;
+    setErrorBorrar("");
+    if (!clave.trim()) {
+      setErrorBorrar("Escriba su contraseña.");
+      return;
+    }
+    setBorrando(true);
+    const { data: usuario } = await supabase().auth.getUser();
+    const correo = usuario.user?.email;
+    if (!correo) {
+      setBorrando(false);
+      setErrorBorrar("No hay sesión activa.");
+      return;
+    }
+    const { error: claveMala } = await supabase().auth.signInWithPassword({ email: correo, password: clave });
+    if (claveMala) {
+      setBorrando(false);
+      setErrorBorrar("La contraseña no coincide.");
+      return;
+    }
+    const { error: fallo } = await supabase().rpc("eliminar_proveedor", { p_id: borrar.id });
+    setBorrando(false);
+    if (fallo) {
+      setErrorBorrar(fallo.message || "No se pudo eliminar el proveedor.");
+      return;
+    }
+    if (fichaId === borrar.id) setFichaId(null);
+    setBorrar(null);
+    setClave("");
+    await cargar();
   }
 
   return (
@@ -119,9 +172,22 @@ export default function Proveedores() {
                     <td>{fila.rapel_activo ? "Sí" : "No"}</td>
                     <td className={`nowrap ${fila.saldo > 0 ? "saldo-rojo" : ""}`}>{formatoPeso(fila.saldo)}</td>
                     <td className="prov-col-accion">
-                      <button type="button" className="btn-barra btn-barra-ver" onClick={() => setFichaId(fila.id)}>
-                        Ver
-                      </button>
+                      <div className="prov-acciones">
+                        <button type="button" className="btn-barra btn-barra-ver" onClick={() => setFichaId(fila.id)}>
+                          Ver
+                        </button>
+                        {puedeEliminar && (
+                          <button
+                            type="button"
+                            className="prov-btn-eliminar"
+                            title="Eliminar proveedor"
+                            aria-label={`Eliminar ${fila.nombre}`}
+                            onClick={() => abrirBorrar(fila)}
+                          >
+                            <IconoBasura />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -148,9 +214,22 @@ export default function Proveedores() {
                     {formatoPeso(fila.saldo)}
                   </strong>
                 </div>
-                <button type="button" className="prov-carta-btn" onClick={() => setFichaId(fila.id)}>
-                  Ver ficha
-                </button>
+                <div className="prov-carta-acciones">
+                  <button type="button" className="prov-carta-btn" onClick={() => setFichaId(fila.id)}>
+                    Ver ficha
+                  </button>
+                  {puedeEliminar && (
+                    <button
+                      type="button"
+                      className="prov-btn-eliminar"
+                      title="Eliminar proveedor"
+                      aria-label={`Eliminar ${fila.nombre}`}
+                      onClick={() => abrirBorrar(fila)}
+                    >
+                      <IconoBasura />
+                    </button>
+                  )}
+                </div>
               </article>
             ))}
           </div>
@@ -172,6 +251,56 @@ export default function Proveedores() {
           />
         </div>
       )}
+
+      {borrar && (
+        <div className="prov-borrar-capa" role="dialog" aria-modal="true" aria-label="Confirmar eliminación">
+          <button type="button" className="prov-ficha-fondo" aria-label="Cerrar" onClick={cerrarBorrar} />
+          <section className="prov-borrar-modal">
+            <header className="prov-borrar-cabeza">
+              <div>
+                <p className="prov-kicker">Confirmación</p>
+                <h2 className="prov-borrar-titulo">Eliminar proveedor</h2>
+              </div>
+              <button type="button" className="ed-factura-cerrar" aria-label="Cerrar" onClick={cerrarBorrar}>×</button>
+            </header>
+            <div className="prov-borrar-cuerpo">
+              <p>
+                Se eliminará <strong>{borrar.nombre}</strong> con todos sus productos, facturas, pagos y datos relacionados.
+                Esta acción no se puede deshacer.
+              </p>
+              <label className="campo">
+                <span className="etiqueta">Contraseña</span>
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  autoFocus
+                  value={clave}
+                  onChange={(e) => setClave(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") void confirmarBorrar(); }}
+                />
+              </label>
+              {errorBorrar && <p className="error">{errorBorrar}</p>}
+            </div>
+            <footer className="prov-borrar-pie">
+              <button type="button" className="btn-barra" disabled={borrando} onClick={cerrarBorrar}>Cancelar</button>
+              <button type="button" className="btn-barra prov-borrar-confirmar" disabled={borrando} onClick={() => void confirmarBorrar()}>
+                {borrando ? "Eliminando…" : "Eliminar"}
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
     </div>
+  );
+}
+
+function IconoBasura() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M4 7h16" strokeLinecap="round" />
+      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <path d="M7 7l1 12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-12" />
+      <path d="M10 11v6M14 11v6" strokeLinecap="round" />
+    </svg>
   );
 }
