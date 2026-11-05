@@ -142,10 +142,10 @@ function PanelFacturas() {
                   <th>Fecha</th>
                   <th>Proveedor</th>
                   <th>N° factura</th>
-                  <th className="text-right">Neto</th>
-                  <th className="text-right">IVA</th>
-                  <th className="text-right">Total</th>
-                  <th className="text-right">Saldo pend.</th>
+                  <th>Neto</th>
+                  <th>IVA</th>
+                  <th>Total</th>
+                  <th>Saldo pend.</th>
                   <th>Estado</th>
                 </tr>
               </thead>
@@ -163,10 +163,10 @@ function PanelFacturas() {
                     <td className="nowrap">{fechaCorta(fila.fecha_ingreso)}</td>
                     <td>{fila.proveedor}</td>
                     <td><button type="button" className="enlace-factura" onClick={() => setEditor(fila.id)}>{fila.numero}</button></td>
-                    <td className="text-right nowrap">{formatoPeso(fila.neto_calculado)}</td>
-                    <td className="text-right nowrap">{formatoPeso(fila.iva_calculado)}</td>
-                    <td className="text-right nowrap">{formatoPeso(fila.total_oficial)}</td>
-                    <td className={`text-right nowrap ${fila.saldo > 0 ? "saldo-rojo" : ""}`}>{formatoPeso(fila.saldo)}</td>
+                    <td className="nowrap">{formatoPeso(fila.neto_calculado)}</td>
+                    <td className="nowrap">{formatoPeso(fila.iva_calculado)}</td>
+                    <td className="nowrap">{formatoPeso(fila.total_oficial)}</td>
+                    <td className={`nowrap ${fila.saldo > 0 ? "saldo-rojo" : ""}`}>{formatoPeso(fila.saldo)}</td>
                     <td><EstadoBadge estado={fila.estado} conRapel={Boolean(fila.con_rapel)} /></td>
                   </tr>
                 ))}
@@ -199,42 +199,38 @@ function PanelFacturas() {
         </div>
 
         <footer className="facturas-barra">
-          <div className="facturas-barra-izq">
-            <div className="facturas-barra-acciones">
-              <button type="button" className="btn-barra btn-barra-principal" onClick={() => setEditor("nueva")}>Agregar nueva factura</button>
-              <button type="button" className="btn-barra" onClick={abrirModificar}>Modificar</button>
-              <button type="button" className="btn-barra" onClick={() => void cargar()}>Actualizar</button>
-              <button
-                type="button"
-                className="btn-barra btn-barra-export"
-                disabled={visibles.length === 0}
-                onClick={() => void excelListado(visibles, `${filtroDesde || "inicio"} a ${filtroHasta || hoySantiago()}`)}
-              >
-                Excel
-              </button>
-              <button
-                type="button"
-                className="btn-barra btn-barra-export"
-                disabled={visibles.length === 0}
-                onClick={() => void pdfListado(visibles, `${filtroDesde || "inicio"} a ${filtroHasta || hoySantiago()}`)}
-              >
-                PDF
-              </button>
-              <Link className="btn-barra" href="/">Salir</Link>
-            </div>
+          <button type="button" className="btn-barra btn-barra-principal" onClick={() => setEditor("nueva")}>Agregar nueva factura</button>
+          <button type="button" className="btn-barra" onClick={abrirModificar}>Modificar</button>
+          <button type="button" className="btn-barra" onClick={() => void cargar()}>Actualizar</button>
+          <button
+            type="button"
+            className="btn-barra btn-barra-export"
+            disabled={visibles.length === 0}
+            onClick={() => void excelListado(visibles, `${filtroDesde || "inicio"} a ${filtroHasta || hoySantiago()}`)}
+          >
+            Excel
+          </button>
+          <button
+            type="button"
+            className="btn-barra btn-barra-export"
+            disabled={visibles.length === 0}
+            onClick={() => void pdfListado(visibles, `${filtroDesde || "inicio"} a ${filtroHasta || hoySantiago()}`)}
+          >
+            PDF
+          </button>
+          <Link className="btn-barra" href="/">Salir</Link>
 
-            <div className="facturas-barra-filtro">
-              <label className="campo filtro-fecha">
-                <span className="etiqueta">Rango inicial</span>
-                <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
-              </label>
-              <label className="campo filtro-fecha">
-                <span className="etiqueta">Rango final</span>
-                <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
-              </label>
-              <button type="button" className="btn-barra" onClick={aplicarFiltro}>Filtrar</button>
-              <button type="button" className="btn-barra" onClick={limpiarFiltro}>Limpiar</button>
-            </div>
+          <div className="facturas-barra-filtro">
+            <label className="campo filtro-fecha">
+              <span className="etiqueta">Desde</span>
+              <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
+            </label>
+            <label className="campo filtro-fecha">
+              <span className="etiqueta">Hasta</span>
+              <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+            </label>
+            <button type="button" className="btn-barra" onClick={aplicarFiltro}>Filtrar</button>
+            <button type="button" className="btn-barra" onClick={limpiarFiltro}>Limpiar</button>
           </div>
 
           <div className="facturas-barra-nav">
