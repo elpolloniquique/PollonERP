@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { formatoPeso, parseMonto, textoMonto } from "@/lib/formato";
 import { Perfil, supabase } from "@/lib/supabase";
 
 export default function Parametros() {
@@ -48,21 +49,32 @@ export default function Parametros() {
             ["tasa_cesantia", "Seguro de cesantía del trabajador"],
             ["valor_uf", "Valor UF"],
             ["tope_imponible", "Tope imponible"],
-          ] as const).map(([campo, etiqueta]) => (
-            <label key={campo} className="campo"><span className="etiqueta">{etiqueta}</span><input value={form[campo]} onChange={(e) => setForm({ ...form, [campo]: Number(e.target.value) })} /></label>
-          ))}
+          ] as const).map(([campo, etiqueta]) => {
+            const esMonto = campo === "ingreso_minimo" || campo === "valor_uf" || campo === "tope_imponible";
+            return (
+              <label key={campo} className="campo">
+                <span className="etiqueta">{etiqueta}</span>
+                <input
+                  inputMode={esMonto ? "numeric" : "decimal"}
+                  placeholder={esMonto ? "$ 0" : undefined}
+                  value={esMonto ? (form[campo] ? formatoPeso(form[campo]) : "") : form[campo]}
+                  onChange={(e) => setForm({ ...form, [campo]: esMonto ? (parseMonto(e.target.value) ?? 0) : Number(e.target.value) })}
+                />
+              </label>
+            );
+          })}
         </div>
         <button className="btn btn-solido" onClick={() => void guardarAnio()}>Guardar año</button>
       </section>
       <section className="marco space-y-2 p-3">
         <h2 className="font-semibold">Tramo de impuesto único</h2>
         <div className="grid gap-2 md:grid-cols-4">
-          <input placeholder="Desde" value={desde} onChange={(e) => setDesde(e.target.value)} />
-          <input placeholder="Hasta, vacío si es el último" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+          <input inputMode="numeric" placeholder="Desde $ 0" value={desde} onChange={(e) => setDesde(textoMonto(e.target.value))} />
+          <input inputMode="numeric" placeholder="Hasta $ 0" value={hasta} onChange={(e) => setHasta(textoMonto(e.target.value))} />
           <input placeholder="Factor" value={factor} onChange={(e) => setFactor(e.target.value)} />
-          <input placeholder="Rebaja" value={rebaja} onChange={(e) => setRebaja(e.target.value)} />
+          <input inputMode="numeric" placeholder="Rebaja $ 0" value={rebaja} onChange={(e) => setRebaja(textoMonto(e.target.value))} />
         </div>
-        <button className="btn" onClick={() => void supabase().from("tramos_impuesto").insert({ empresa_id: empresaId, anio, desde: Number(desde), hasta: hasta ? Number(hasta) : null, factor: Number(factor), rebaja: Number(rebaja) }).then(({ error }) => setAviso(error?.message ?? "Tramo agregado."))}>Agregar tramo</button>
+        <button className="btn" onClick={() => void supabase().from("tramos_impuesto").insert({ empresa_id: empresaId, anio, desde: parseMonto(desde) ?? 0, hasta: hasta ? parseMonto(hasta) : null, factor: Number(factor), rebaja: parseMonto(rebaja) ?? 0 }).then(({ error }) => setAviso(error?.message ?? "Tramo agregado."))}>Agregar tramo</button>
       </section>
       <section className="marco space-y-2 p-3">
         <h2 className="font-semibold">AFP del periodo</h2>
@@ -80,7 +92,7 @@ export default function Parametros() {
         <div className="grid gap-2 md:grid-cols-3">
           <input placeholder="Área" value={area.area} onChange={(e) => setArea({ ...area, area: e.target.value })} />
           <input type="number" value={area.mes} onChange={(e) => setArea({ ...area, mes: Number(e.target.value) })} />
-          <input placeholder="Monto" value={area.monto} onChange={(e) => setArea({ ...area, monto: Number(e.target.value) })} />
+          <input inputMode="numeric" placeholder="$ 0" value={area.monto ? formatoPeso(area.monto) : ""} onChange={(e) => setArea({ ...area, monto: parseMonto(e.target.value) ?? 0 })} />
         </div>
         <button className="btn" onClick={() => void supabase().from("bonos_area").insert({ empresa_id: empresaId, anio, ...area }).then(({ error }) => setAviso(error?.message ?? "Bono guardado."))}>Guardar bono</button>
       </section>

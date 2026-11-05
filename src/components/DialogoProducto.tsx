@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatoEntero, parseMonto } from "@/lib/formato";
+import { formatoPeso, parseMonto, textoMonto } from "@/lib/formato";
 
 export type ProductoOpcion = {
   id: string;
@@ -65,7 +65,7 @@ export function DialogoProducto({
       ?? null;
     setElegido(producto);
     setCantidadTexto(String(actual.cantidad).replace(".", ","));
-    setPrecioTexto(formatoEntero(actual.cantidad * actual.precioNetoUnitario));
+    setPrecioTexto(formatoPeso(actual.cantidad * actual.precioNetoUnitario));
     setConIva(actual.aplicaIva);
   }, [actual, productos]);
 
@@ -84,7 +84,7 @@ export function DialogoProducto({
     const nueva = parseMonto(valor);
     if (!escribiendo && producto && producto.precio_neto > 0 && nueva && nueva > 0) {
       setEscribiendo(true);
-      setPrecioTexto(formatoEntero(nueva * Number(producto.precio_neto)));
+      setPrecioTexto(formatoPeso(nueva * Number(producto.precio_neto)));
       setEscribiendo(false);
     }
   }
@@ -159,15 +159,15 @@ export function DialogoProducto({
             </label>
             <label className="campo">
               <span className="etiqueta">Precio total neto</span>
-              <input id="precio-total-neto" value={precioTexto} onChange={(e) => { if (!escribiendo) setPrecioTexto(e.target.value); }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); grabar(); } }} />
+              <input id="precio-total-neto" inputMode="numeric" placeholder="$ 0" value={precioTexto} onChange={(e) => { if (!escribiendo) setPrecioTexto(textoMonto(e.target.value)); }} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); grabar(); } }} />
             </label>
             <div className="flex items-center justify-between border border-[#2436F0] bg-[#F4F6FF] px-2 py-1.5">
               <span className="text-[#2436F0]">{porKilo ? "Precio por kilo" : "Precio unitario"}</span>
-              <strong className="text-[#2436F0]">{listo ? formatoEntero(unitario) : "—"}</strong>
+              <strong className="text-[#2436F0]">{listo ? formatoPeso(unitario) : "—"}</strong>
             </div>
             <div className="flex items-center justify-between border border-[#2436F0] bg-[#F4F6FF] px-2 py-1.5">
               <span className="text-[#2436F0]">Precio con IVA</span>
-              <strong className="text-[#2436F0]">{listo ? formatoEntero(unitario * (1 + porcentajeIva / 100)) : "—"}</strong>
+              <strong className="text-[#2436F0]">{listo ? formatoPeso(unitario * (1 + porcentajeIva / 100)) : "—"}</strong>
             </div>
             <label className="flex items-center gap-2"><input className="w-auto" type="checkbox" checked={conIva} onChange={(e) => setConIva(e.target.checked)} />Con IVA</label>
           </div>

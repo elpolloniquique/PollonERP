@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { estadoVisible, formatoPeso } from "@/lib/formato";
+import { estadoVisible, formatoPeso, parseMonto, textoMonto } from "@/lib/formato";
 import { fechaCorta } from "@/lib/fechas";
 import { mostrarRut, normalizarRut } from "@/lib/rut";
 import { Perfil, supabase } from "@/lib/supabase";
@@ -385,10 +385,10 @@ function Productos({ proveedorId }: { proveedorId: string }) {
       <div className="ficha-inline">
         <input placeholder="Producto" value={nombre} onChange={(e) => setNombre(e.target.value)} />
         <select value={unidad} onChange={(e) => setUnidad(e.target.value)}>{UNIDADES.map((u) => <option key={u}>{u}</option>)}</select>
-        <input className="ficha-input-chico" placeholder="Precio" value={precio} onChange={(e) => setPrecio(e.target.value)} />
+        <input className="ficha-input-chico" inputMode="numeric" placeholder="$ 0" value={precio} onChange={(e) => setPrecio(textoMonto(e.target.value))} />
         <button type="button" className="btn-barra" onClick={async () => {
           if (!nombre.trim()) return;
-          await supabase().from("productos").insert({ proveedor_id: proveedorId, nombre, unidad, precio_neto: Number(precio) || 0 });
+          await supabase().from("productos").insert({ proveedor_id: proveedorId, nombre, unidad, precio_neto: parseMonto(precio) ?? 0 });
           setNombre(""); setPrecio("");
           await recargar();
         }}>Agregar</button>

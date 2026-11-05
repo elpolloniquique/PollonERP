@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fechaCorta, hoySantiago } from "@/lib/fechas";
-import { formatoPeso } from "@/lib/formato";
+import { formatoPeso, parseMonto, textoMonto } from "@/lib/formato";
 import { aplicarPago } from "@/lib/pago";
 import { Perfil, supabase } from "@/lib/supabase";
 
@@ -38,7 +38,7 @@ export default function Abono() {
   }, [proveedorId]);
 
   const factura = facturas.find((item) => item.id === marcada);
-  const abono = Number(monto.replace(/\./g, "")) || 0;
+  const abono = parseMonto(monto) ?? 0;
   const queda = factura ? Math.max(Number(factura.saldo) - abono, 0) : 0;
 
   async function registrar() {
@@ -67,7 +67,7 @@ export default function Abono() {
                 {proveedores.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}
               </select>
             </label>
-            <label className="campo"><span className="etiqueta">Monto que pagó la jefa</span><input value={monto} onChange={(e) => setMonto(e.target.value)} inputMode="numeric" /></label>
+            <label className="campo"><span className="etiqueta">Monto que pagó la jefa</span><input value={monto} onChange={(e) => setMonto(textoMonto(e.target.value))} inputMode="numeric" placeholder="$ 0" /></label>
             <label className="campo"><span className="etiqueta">Fecha</span><input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} /></label>
             {factura && (
               <div className="rounded-xl border border-[var(--linea)] p-3">

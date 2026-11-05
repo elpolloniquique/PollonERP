@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { mostrarRut, normalizarRut } from "@/lib/rut";
-import { formatoPeso } from "@/lib/formato";
+import { formatoPeso, parseMonto } from "@/lib/formato";
 import { Perfil, supabase } from "@/lib/supabase";
 
 type Trabajador = {
@@ -85,7 +85,7 @@ export default function Personal() {
             <label className="campo"><span className="etiqueta">Área</span><input value={ficha.area} onChange={(e) => setFicha({ ...ficha, area: e.target.value })} /></label>
             <label className="campo"><span className="etiqueta">Ingreso</span><input type="date" value={ficha.fecha_ingreso} onChange={(e) => setFicha({ ...ficha, fecha_ingreso: e.target.value })} /></label>
             <label className="campo"><span className="etiqueta">Jornada</span><input value={ficha.jornada} onChange={(e) => setFicha({ ...ficha, jornada: e.target.value })} /></label>
-            <label className="campo"><span className="etiqueta">Sueldo base</span><input value={ficha.sueldo_base} onChange={(e) => setFicha({ ...ficha, sueldo_base: Number(e.target.value) })} /></label>
+            <label className="campo"><span className="etiqueta">Sueldo base</span><input inputMode="numeric" placeholder="$ 0" value={ficha.sueldo_base ? formatoPeso(ficha.sueldo_base) : ""} onChange={(e) => setFicha({ ...ficha, sueldo_base: parseMonto(e.target.value) ?? 0 })} /></label>
             <label className="campo"><span className="etiqueta">Forma de pago</span><input value={ficha.forma_pago} onChange={(e) => setFicha({ ...ficha, forma_pago: e.target.value })} /></label>
             <label className="campo"><span className="etiqueta">Banco</span><input value={ficha.banco} onChange={(e) => setFicha({ ...ficha, banco: e.target.value })} /></label>
             <label className="campo"><span className="etiqueta">Cuenta</span><input value={ficha.numero_cuenta} onChange={(e) => setFicha({ ...ficha, numero_cuenta: e.target.value })} /></label>

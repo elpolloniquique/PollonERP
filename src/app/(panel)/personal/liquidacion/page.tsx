@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { formatoPeso } from "@/lib/formato";
+import { formatoPeso, parseMonto } from "@/lib/formato";
 import { pdfLiquidacion } from "@/lib/exportar";
 import { calcularLiquidacion, type TramoImpuesto } from "@/lib/remuneracion";
 import { Perfil, supabase } from "@/lib/supabase";
@@ -121,7 +121,7 @@ export default function Liquidacion() {
         <label className="campo"><span className="etiqueta">Horas extra</span><input value={horasExtra} onChange={(e) => setHorasExtra(Number(e.target.value))} /></label>
         <label className="campo"><span className="etiqueta">Domingos y festivos</span><input value={diasDomingo} onChange={(e) => setDiasDomingo(Number(e.target.value))} /></label>
         <label className="campo"><span className="etiqueta">Otro descuento</span><input value={otrosNombre} onChange={(e) => setOtrosNombre(e.target.value)} /></label>
-        <label className="campo"><span className="etiqueta">Monto</span><input value={otrosMonto} onChange={(e) => setOtrosMonto(Number(e.target.value))} /></label>
+        <label className="campo"><span className="etiqueta">Monto</span><input inputMode="numeric" placeholder="$ 0" value={otrosMonto ? formatoPeso(otrosMonto) : ""} onChange={(e) => setOtrosMonto(parseMonto(e.target.value) ?? 0)} /></label>
       </div>
       {aviso && <p className="aviso">{aviso}</p>}
       <div className="marco space-y-1 p-3">{resultado.map((linea) => <p key={linea}>{linea}</p>)}</div>

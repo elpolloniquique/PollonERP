@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fechaCorta, hoySantiago } from "@/lib/fechas";
-import { formatoPeso } from "@/lib/formato";
+import { formatoPeso, parseMonto, textoMonto } from "@/lib/formato";
 import { aplicarPago } from "@/lib/pago";
 import { Perfil, supabase } from "@/lib/supabase";
 
@@ -48,7 +48,7 @@ export default function RegistrarPago() {
   const suma = elegidas.reduce((total, factura) => total + Number(factura.saldo), 0);
 
   async function registrar() {
-    const pagado = Number(monto.replace(/\./g, ""));
+    const pagado = parseMonto(monto) ?? 0;
     if (pagado !== suma) {
       setMensaje("El monto tiene que ser igual a la suma de los saldos marcados. Si es menor, use Abono parcial.");
       return;
@@ -97,7 +97,7 @@ export default function RegistrarPago() {
             </div>
             <label className="campo"><span className="etiqueta">Fecha</span><input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} /></label>
             <label className="campo"><span className="etiqueta">Observación</span><input value={observacion} onChange={(e) => setObservacion(e.target.value)} /></label>
-            <label className="campo"><span className="etiqueta">Monto que pagó la jefa</span><input value={monto} onChange={(e) => setMonto(e.target.value)} inputMode="numeric" /></label>
+            <label className="campo"><span className="etiqueta">Monto que pagó la jefa</span><input value={monto} onChange={(e) => setMonto(textoMonto(e.target.value))} inputMode="numeric" placeholder="$ 0" /></label>
             {mensaje && <p className="aviso">{mensaje}</p>}
             <button className="btn btn-solido w-full" onClick={() => void registrar()}>Registrar pago</button>
           </aside>

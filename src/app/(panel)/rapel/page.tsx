@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fechaCorta, hoySantiago } from "@/lib/fechas";
-import { formatoPeso } from "@/lib/formato";
+import { formatoPeso, parseMonto, textoMonto } from "@/lib/formato";
 import { evaluarRapel } from "@/lib/rapel";
 import { Perfil, supabase } from "@/lib/supabase";
 
@@ -44,7 +44,7 @@ export default function Rapel() {
 
   const proveedor = proveedores.find((item) => item.id === proveedorId);
   const elegidas = facturas.filter((factura) => marcadas.includes(factura.id));
-  const cierre = useMemo(() => evaluarRapel(elegidas.map((factura) => Number(factura.saldo)), Number(monto.replace(/\./g, "")) || 0), [elegidas, monto]);
+  const cierre = useMemo(() => evaluarRapel(elegidas.map((factura) => Number(factura.saldo)), parseMonto(monto) ?? 0), [elegidas, monto]);
 
   async function armar() {
     if (!proveedor?.rapel_activo) { setMensaje("Este proveedor no tiene el rapel activo."); return; }
@@ -107,7 +107,7 @@ export default function Rapel() {
             {proveedores.map((item) => <option key={item.id} value={item.id}>{item.nombre}{item.rapel_activo ? "" : " (sin rapel)"}</option>)}
           </select>
         </label>
-        <label className="campo"><span className="etiqueta">Monto del rapel</span><input value={monto} onChange={(e) => setMonto(e.target.value)} /></label>
+        <label className="campo"><span className="etiqueta">Monto del rapel</span><input inputMode="numeric" placeholder="$ 0" value={monto} onChange={(e) => setMonto(textoMonto(e.target.value))} /></label>
         <p>Facturas {formatoPeso(cierre.suma)}</p>
         <p className="text-lg font-semibold text-[#2436F0]">Diferencia a pagar {formatoPeso(cierre.diferenciaAPagar)}</p>
         {mensaje && <p className="aviso">{mensaje}</p>}

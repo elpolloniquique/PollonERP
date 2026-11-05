@@ -8,6 +8,124 @@ import { Empresa, Perfil, supabase } from "@/lib/supabase";
 
 type Enlace = { href: string; texto: string; grupo: string };
 
+function IconoMenu({ href }: { href: string }) {
+  const comun = {
+    viewBox: "0 0 24 24",
+    width: 16,
+    height: 16,
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.7,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  if (href === "/") {
+    return (
+      <svg {...comun}>
+        <path d="M4 10.5 12 4l8 6.5" />
+        <path d="M6.5 9.8V20h11V9.8" />
+        <path d="M10 20v-5h4v5" />
+      </svg>
+    );
+  }
+  if (href === "/proveedores") {
+    return (
+      <svg {...comun}>
+        <path d="M4 20V6.5L12 3l8 3.5V20" />
+        <path d="M9 20v-4h6v4" />
+        <path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01" />
+      </svg>
+    );
+  }
+  if (href === "/facturas") {
+    return (
+      <svg {...comun}>
+        <path d="M7 3.5h7l4 4V20.5H7z" />
+        <path d="M14 3.5V8h4" />
+        <path d="M9.5 12h5M9.5 15.5h5" />
+      </svg>
+    );
+  }
+  if (href === "/facturas/pendientes") {
+    return (
+      <svg {...comun}>
+        <circle cx="12" cy="12" r="8" />
+        <path d="M12 8v4.5l3 2" />
+      </svg>
+    );
+  }
+  if (href === "/fotos") {
+    return (
+      <svg {...comun}>
+        <path d="M4.5 8.5h3l1.2-2h6.6l1.2 2h3V19H4.5z" />
+        <circle cx="12" cy="13.2" r="3" />
+      </svg>
+    );
+  }
+  if (href === "/pagos/registrar") {
+    return (
+      <svg {...comun}>
+        <rect x="3.5" y="6" width="17" height="12" rx="1.5" />
+        <path d="M3.5 10h17" />
+        <path d="M7 14.5h4" />
+      </svg>
+    );
+  }
+  if (href === "/pagos/abono") {
+    return (
+      <svg {...comun}>
+        <circle cx="12" cy="12" r="8" />
+        <path d="M12 8.5v7M9.2 10.2c.6-.8 1.6-1.2 2.8-1.2 1.6 0 2.7.8 2.7 2s-1.1 1.8-2.7 1.8h-.8c-1.6 0-2.7.8-2.7 2s1.1 2 2.7 2c1.2 0 2.2-.4 2.8-1.2" />
+      </svg>
+    );
+  }
+  if (href === "/facturas/parciales") {
+    return (
+      <svg {...comun}>
+        <path d="M12 4a8 8 0 1 0 8 8h-8z" />
+        <path d="M12 4v8h8" />
+      </svg>
+    );
+  }
+  if (href === "/rapel") {
+    return (
+      <svg {...comun}>
+        <path d="M4.5 8.5h9.2a3.3 3.3 0 0 1 0 6.6H8" />
+        <path d="M7.2 6.2 4.5 8.5l2.7 2.3" />
+        <path d="M19.5 15.5H10.3a3.3 3.3 0 0 1 0-6.6H16" />
+        <path d="M16.8 17.8 19.5 15.5l-2.7-2.3" />
+      </svg>
+    );
+  }
+  if (href === "/personal") {
+    return (
+      <svg {...comun}>
+        <rect x="4" y="4.5" width="16" height="15" rx="1.5" />
+        <circle cx="12" cy="10" r="2.2" />
+        <path d="M8.2 16.2c.7-1.5 2-2.2 3.8-2.2s3.1.7 3.8 2.2" />
+      </svg>
+    );
+  }
+  if (href === "/usuarios") {
+    return (
+      <svg {...comun}>
+        <circle cx="9" cy="9" r="2.4" />
+        <path d="M4.8 17.2c.6-2 2.2-3 4.2-3s3.6 1 4.2 3" />
+        <circle cx="16.2" cy="9.4" r="2" />
+        <path d="M15.2 14.4c1.4.2 2.5 1 3.2 2.8" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...comun}>
+      <path d="M10 7V4.5H5.5V19.5H10V17" />
+      <path d="M10 12h9" />
+      <path d="M16 8.5 19.5 12 16 15.5" />
+    </svg>
+  );
+}
+
 export default function Panel({ children }: { children: React.ReactNode }) {
   const ruta = usePathname();
   const [perfil, setPerfil] = useState<Perfil | null>(null);
@@ -91,7 +209,7 @@ export default function Panel({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className={`menu-enlace ${activo(item.href) ? "menu-enlace-activo" : ""}`}
               >
-                <span className="menu-enlace-barra" aria-hidden />
+                <span className="menu-icono"><IconoMenu href={item.href} /></span>
                 {item.texto}
               </Link>
             ))}
@@ -101,6 +219,7 @@ export default function Panel({ children }: { children: React.ReactNode }) {
 
       <div className="menu-pie">
         <button type="button" className="menu-salir" onClick={cerrarSesion}>
+          <span className="menu-icono"><IconoMenu href="/salir" /></span>
           Salir
         </button>
       </div>

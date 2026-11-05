@@ -13,6 +13,16 @@ export function formatoEntero(valor: number): string {
   return pesos.format(redondearPeso(valor));
 }
 
+/** Mientras se escribe un monto: solo dígitos y queda como `$ 1.085.000`. */
+export function textoMonto(valor: string): string {
+  const negativo = /^\s*-/.test(valor);
+  const digitos = valor.replace(/\D/g, "");
+  if (!digitos) return "";
+  const numero = Number(digitos);
+  if (!Number.isFinite(numero)) return "";
+  return `${negativo ? "-" : ""}$ ${pesos.format(numero)}`;
+}
+
 export function formatoDetalle(valor: number): string {
   return detalle.format(valor);
 }
