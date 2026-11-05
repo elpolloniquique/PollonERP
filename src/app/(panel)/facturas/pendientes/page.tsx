@@ -64,6 +64,7 @@ export default function Pendientes() {
     ? `${fechaCorta(delProveedor[0].fecha_ingreso)} al ${fechaCorta(delProveedor[delProveedor.length - 1].fecha_ingreso)}`
     : hoySantiago();
   const nombre = proveedores.find((item) => item.id === elegido)?.nombre ?? "";
+  const sinFacturas = !elegido || delProveedor.length === 0;
 
   useEffect(() => {
     if (!elegido && conSaldo.length > 0) setElegido(conSaldo[0].id);
@@ -73,7 +74,7 @@ export default function Pendientes() {
   }, [conSaldo, elegido]);
 
   async function verPdf() {
-    if (!elegido || delProveedor.length === 0) return;
+    if (sinFacturas) return;
     setExportando(true);
     try {
       await pdfPendientes(
@@ -93,31 +94,51 @@ export default function Pendientes() {
     }
   }
 
+  const acciones = (
+    <>
+      <a className="btn-barra" href="/facturas?nueva=1">Nueva factura</a>
+      <a className="btn-barra" href="/pagos/registrar">Registrar pago</a>
+      <button
+        type="button"
+        className="btn-barra"
+        disabled={sinFacturas}
+        onClick={() => void copiarReportePendientes(
+          delProveedor.map((factura) => ({
+            fecha: factura.fecha_ingreso,
+            numero: factura.numero,
+            saldo: Number(factura.saldo),
+            estado: factura.estado,
+          })),
+          nombre,
+          periodo,
+          total,
+        )}
+      >
+        WhatsApp
+      </button>
+      <button
+        type="button"
+        className="btn-barra btn-barra-principal"
+        disabled={sinFacturas || exportando}
+        onClick={() => void verPdf()}
+      >
+        {exportando ? "Generando…" : "Ver en PDF"}
+      </button>
+    </>
+  );
+
   return (
     <div className="pend-pantalla">
       <section className="pend-tarjeta">
-        <header className="pend-cabeza">
-          <div>
-            <p className="pend-kicker">Operación</p>
-            <h1 className="pend-titulo">Pendientes</h1>
-            <p className="pend-sub">
-              {conSaldo.length} proveedor{conSaldo.length === 1 ? "" : "es"} · Total {formatoPeso(totalGeneral)}
-            </p>
-          </div>
-          <div className="pend-resumen-rapido escritorio-solo">
-            <div>
-              <span>Facturas</span>
-              <strong>{facturas.length}</strong>
-            </div>
-            <div>
-              <span>Saldo total</span>
-              <strong className="saldo-rojo">{formatoPeso(totalGeneral)}</strong>
-            </div>
-          </div>
-        </header>
-
         <div className="pend-cuerpo">
           <aside className="pend-lista escritorio-solo">
+            <div className="pend-lista-tope">
+              <h1 className="pend-titulo">Pendientes</h1>
+              <p className="pend-sub">
+                {conSaldo.length} proveedor{conSaldo.length === 1 ? "" : "es"} · {formatoPeso(totalGeneral)}
+              </p>
+            </div>
+
             <label className="pend-buscar-caja">
               <span className="pend-buscar-icono" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
@@ -132,6 +153,7 @@ export default function Pendientes() {
                 onChange={(e) => setBusqueda(e.target.value)}
               />
             </label>
+
             <div className="pend-lista-scroll">
               {filtrados.length === 0 && <p className="pend-vacio">Sin pendientes.</p>}
               {filtrados.map((item) => {
@@ -153,25 +175,37 @@ export default function Pendientes() {
                 );
               })}
             </div>
+
+            <div className="pend-acciones pend-acciones-lado">
+              {acciones}
+            </div>
           </aside>
 
-          <div className="pend-chips movil-solo">
-            {conSaldo.length === 0 && <p className="pend-vacio">Sin facturas pendientes.</p>}
-            {conSaldo.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`pend-chip ${elegido === item.id ? "activa" : ""}`}
-                onClick={() => setElegido(item.id)}
-              >
-                {item.nombre}
-              </button>
-            ))}
+          <div className="pend-movil-tope movil-solo">
+            <div className="pend-lista-tope">
+              <h1 className="pend-titulo">Pendientes</h1>
+              <p className="pend-sub">
+                {conSaldo.length} proveedor{conSaldo.length === 1 ? "" : "es"} · {formatoPeso(totalGeneral)}
+              </p>
+            </div>
+            <div className="pend-chips">
+              {conSaldo.length === 0 && <p className="pend-vacio">Sin facturas pendientes.</p>}
+              {conSaldo.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`pend-chip ${elegido === item.id ? "activa" : ""}`}
+                  onClick={() => setElegido(item.id)}
+                >
+                  {item.nombre}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="pend-detalle">
             <div className="pend-detalle-cabeza">
-              <div>
+              <div className="pend-detalle-info">
                 <h2 className="pend-detalle-titulo">{nombre || "Seleccione un proveedor"}</h2>
                 <p className="pend-detalle-sub">
                   {elegido
@@ -246,35 +280,8 @@ export default function Pendientes() {
               ))}
             </div>
 
-            <footer className="pend-acciones">
-              <a className="btn-barra" href="/facturas?nueva=1">Nueva factura</a>
-              <a className="btn-barra" href="/pagos/registrar">Registrar pago</a>
-              <button
-                type="button"
-                className="btn-barra"
-                disabled={!elegido || delProveedor.length === 0}
-                onClick={() => void copiarReportePendientes(
-                  delProveedor.map((factura) => ({
-                    fecha: factura.fecha_ingreso,
-                    numero: factura.numero,
-                    saldo: Number(factura.saldo),
-                    estado: factura.estado,
-                  })),
-                  nombre,
-                  periodo,
-                  total,
-                )}
-              >
-                WhatsApp
-              </button>
-              <button
-                type="button"
-                className="btn-barra btn-barra-principal"
-                disabled={!elegido || delProveedor.length === 0 || exportando}
-                onClick={() => void verPdf()}
-              >
-                {exportando ? "Generando…" : "Ver en PDF"}
-              </button>
+            <footer className="pend-acciones pend-acciones-movil movil-solo">
+              {acciones}
             </footer>
           </div>
         </div>
