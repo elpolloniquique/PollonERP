@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { estadoVisible, formatoPeso } from "@/lib/formato";
 import { fechaCorta } from "@/lib/fechas";
@@ -7,6 +8,7 @@ import { mostrarRut, normalizarRut } from "@/lib/rut";
 import { Perfil, supabase } from "@/lib/supabase";
 
 const UNIDADES = ["Unidad", "Kilo", "Caja", "Paquete", "Balón", "Litro", "Otro"];
+const PESTANAS = ["Datos", "Pagos", "Impuestos", "Rapel", "Productos", "Facturas", "Cuenta corriente"] as const;
 
 type Proveedor = {
   id?: string;
@@ -39,7 +41,7 @@ const vacio = (empresaId: string): Proveedor => ({
 
 export function FichaProveedor({ id }: { id: string }) {
   const nuevo = id === "nuevo";
-  const [pestana, setPestana] = useState("Datos");
+  const [pestana, setPestana] = useState<(typeof PESTANAS)[number]>("Datos");
   const [datos, setDatos] = useState<Proveedor | null>(null);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
@@ -93,60 +95,138 @@ export function FichaProveedor({ id }: { id: string }) {
 
   if (!datos) return <main className="p-4">{error || "Cargando…"}</main>;
   const poner = (campo: keyof Proveedor, valor: string | number | boolean) => setDatos({ ...datos, [campo]: valor });
+  const rutVisible = datos.rut ? (datos.rut.includes(".") ? datos.rut : mostrarRut(datos.rut)) : "";
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-3">
-      <div className="marco flex min-h-0 flex-1 flex-col">
-        <h1 className="titulo-barra">{nuevo ? "Nuevo proveedor" : datos.nombre}</h1>
-        <div className="pestanas overflow-x-auto">
-          {["Datos", "Pagos", "Impuestos", "Rapel", "Productos", "Facturas", "Cuenta corriente"].map((nombre) => (
-            <button key={nombre} className={pestana === nombre ? "activa" : ""} onClick={() => setPestana(nombre)} disabled={nuevo && nombre !== "Datos"}>{nombre}</button>
+    <div className="ficha-pantalla">
+      <section className="ficha-tarjeta">
+        <header className="ficha-cabeza">
+          <div className="ficha-cabeza-texto">
+            <Link className="ficha-volver" href="/proveedores">← Proveedores</Link>
+            <div className="ficha-titulo-fila">
+              <h1 className="ficha-titulo">{nuevo ? "Nuevo proveedor" : datos.nombre}</h1>
+              {!nuevo && (
+                <span className={`estado-badge ${datos.activo ? "estado-pagado" : "estado-anulado"}`}>
+                  {datos.activo ? "Activo" : "Inactivo"}
+                </span>
+              )}
+            </div>
+            <p className="ficha-sub">
+              {nuevo ? "Complete los datos del proveedor" : `${rutVisible || "Sin RUT"} · ${datos.dias_credito} días de crédito`}
+            </p>
+          </div>
+        </header>
+
+        <nav className="ficha-pestanas" aria-label="Secciones del proveedor">
+          {PESTANAS.map((nombre) => (
+            <button
+              key={nombre}
+              type="button"
+              className={`ficha-pestana ${pestana === nombre ? "activa" : ""}`}
+              onClick={() => setPestana(nombre)}
+              disabled={nuevo && nombre !== "Datos"}
+            >
+              {nombre}
+            </button>
           ))}
-        </div>
-        <div className="min-h-0 flex-1 overflow-auto p-3">
+        </nav>
+
+        <div className="ficha-cuerpo">
           {pestana === "Datos" && (
-            <div className="grilla-campos">
-              <Campo nombre="Nombre" valor={datos.nombre} onChange={(v) => poner("nombre", v)} />
-              <Campo nombre="Rubro" valor={datos.rubro} onChange={(v) => poner("rubro", v)} />
-              <Campo nombre="Razón social" valor={datos.razon_social} onChange={(v) => poner("razon_social", v)} />
-              <Campo nombre="RUT" valor={datos.rut ? (datos.rut.includes(".") ? datos.rut : mostrarRut(datos.rut)) : ""} onChange={(v) => poner("rut", v)} />
-              <Campo nombre="Giro" valor={datos.giro} onChange={(v) => poner("giro", v)} />
-              <Campo nombre="Contacto" valor={datos.contacto} onChange={(v) => poner("contacto", v)} />
-              <Campo nombre="Teléfono" valor={datos.telefono} onChange={(v) => poner("telefono", v)} />
-              <Campo nombre="Correo de cobranza" valor={datos.correo_cobranza} onChange={(v) => poner("correo_cobranza", v)} />
-              <Campo nombre="Dirección" valor={datos.direccion} onChange={(v) => poner("direccion", v)} />
-              <Campo nombre="Días de crédito" valor={String(datos.dias_credito)} onChange={(v) => poner("dias_credito", Number(v))} />
-              <label className="campo col-span-full"><span className="etiqueta">Observaciones</span><textarea rows={3} value={datos.observaciones} onChange={(e) => poner("observaciones", e.target.value)} /></label>
-              <label className="flex items-center gap-2"><input className="w-auto" type="checkbox" checked={datos.activo} onChange={(e) => poner("activo", e.target.checked)} />Proveedor activo</label>
+            <div className="ficha-bloque">
+              <div className="ficha-grilla">
+                <Campo nombre="Nombre" valor={datos.nombre} onChange={(v) => poner("nombre", v)} />
+                <Campo nombre="Rubro" valor={datos.rubro} onChange={(v) => poner("rubro", v)} />
+                <Campo nombre="Razón social" valor={datos.razon_social} onChange={(v) => poner("razon_social", v)} />
+                <Campo nombre="RUT" valor={rutVisible} onChange={(v) => poner("rut", v)} />
+                <Campo nombre="Giro" valor={datos.giro} onChange={(v) => poner("giro", v)} />
+                <Campo nombre="Contacto" valor={datos.contacto} onChange={(v) => poner("contacto", v)} />
+                <Campo nombre="Teléfono" valor={datos.telefono} onChange={(v) => poner("telefono", v)} />
+                <Campo nombre="Correo de cobranza" valor={datos.correo_cobranza} onChange={(v) => poner("correo_cobranza", v)} />
+                <Campo nombre="Dirección" valor={datos.direccion} onChange={(v) => poner("direccion", v)} clase="ficha-span-2" />
+                <Campo nombre="Días de crédito" valor={String(datos.dias_credito)} onChange={(v) => poner("dias_credito", Number(v))} />
+                <label className="campo ficha-span-2">
+                  <span className="etiqueta">Observaciones</span>
+                  <textarea rows={2} value={datos.observaciones} onChange={(e) => poner("observaciones", e.target.value)} />
+                </label>
+              </div>
+              <label className="ficha-check">
+                <input type="checkbox" checked={datos.activo} onChange={(e) => poner("activo", e.target.checked)} />
+                Proveedor activo
+              </label>
             </div>
           )}
+
           {pestana === "Pagos" && datos.id && (
-            <div className="grid max-w-md gap-3">
-              <Campo nombre="Banco" valor={datos.banco} onChange={(v) => poner("banco", v)} />
-              <Campo nombre="Tipo de cuenta" valor={datos.tipo_cuenta} onChange={(v) => poner("tipo_cuenta", v)} />
-              <Campo nombre="Número de cuenta" valor={datos.numero_cuenta} onChange={(v) => poner("numero_cuenta", v)} />
-              <button className="btn w-fit" onClick={() => navigator.clipboard.writeText(`Banco: ${datos.banco}\nTipo: ${datos.tipo_cuenta}\nCuenta: ${datos.numero_cuenta}`)}>Copiar datos de pago</button>
+            <div className="ficha-bloque ficha-bloque-angosto">
+              <div className="ficha-grilla">
+                <Campo nombre="Banco" valor={datos.banco} onChange={(v) => poner("banco", v)} />
+                <Campo nombre="Tipo de cuenta" valor={datos.tipo_cuenta} onChange={(v) => poner("tipo_cuenta", v)} />
+                <Campo nombre="Número de cuenta" valor={datos.numero_cuenta} onChange={(v) => poner("numero_cuenta", v)} clase="ficha-span-2" />
+              </div>
+              <button
+                type="button"
+                className="btn-barra"
+                onClick={() => void navigator.clipboard.writeText(`Banco: ${datos.banco}\nTipo: ${datos.tipo_cuenta}\nCuenta: ${datos.numero_cuenta}`)}
+              >
+                Copiar datos de pago
+              </button>
             </div>
           )}
-          {pestana === "Impuestos" && datos.id && <Impuestos proveedorId={datos.id} porcentaje={datos.porcentaje_iva} onPorcentaje={(v) => poner("porcentaje_iva", v)} />}
-          {pestana === "Rapel" && <label className="flex items-center gap-2"><input className="w-auto" type="checkbox" checked={datos.rapel_activo} onChange={(e) => poner("rapel_activo", e.target.checked)} />Rapel activo</label>}
+
+          {pestana === "Impuestos" && datos.id && (
+            <Impuestos proveedorId={datos.id} porcentaje={datos.porcentaje_iva} onPorcentaje={(v) => poner("porcentaje_iva", v)} />
+          )}
+          {pestana === "Rapel" && (
+            <div className="ficha-bloque ficha-bloque-angosto">
+              <label className="ficha-check">
+                <input type="checkbox" checked={datos.rapel_activo} onChange={(e) => poner("rapel_activo", e.target.checked)} />
+                Rapel activo
+              </label>
+              <p className="ficha-ayuda">Si está activo, este proveedor aparecerá en la opción Rapel.</p>
+            </div>
+          )}
           {pestana === "Productos" && datos.id && <Productos proveedorId={datos.id} />}
           {pestana === "Facturas" && datos.id && <Facturas proveedorId={datos.id} />}
           {pestana === "Cuenta corriente" && datos.id && <Cuenta proveedorId={datos.id} />}
-          {error && <p className="error mt-3">{error}</p>}
-          {aviso && <p className="ok mt-3">{aviso}</p>}
+
+          {error && <p className="error">{error}</p>}
+          {aviso && <p className="ok">{aviso}</p>}
         </div>
-        <div className="flex gap-2 border-t border-[#d5e4e1] p-3">
-          {puede && ["Datos", "Pagos", "Rapel", "Impuestos"].includes(pestana) && <button className="btn btn-solido" onClick={guardar}>Guardar</button>}
-          {puede && !nuevo && datos.activo && <button className="btn" onClick={desactivar}>Desactivar</button>}
-        </div>
-      </div>
+
+        <footer className="ficha-pie">
+          <Link className="btn-barra" href="/proveedores">Volver</Link>
+          <div className="ficha-pie-acciones">
+            {puede && !nuevo && datos.activo && (
+              <button type="button" className="btn-barra" onClick={() => void desactivar()}>Desactivar</button>
+            )}
+            {puede && ["Datos", "Pagos", "Rapel", "Impuestos"].includes(pestana) && (
+              <button type="button" className="btn-barra btn-barra-principal" onClick={() => void guardar()}>Guardar</button>
+            )}
+          </div>
+        </footer>
+      </section>
     </div>
   );
 }
 
-function Campo({ nombre, valor, onChange }: { nombre: string; valor: string; onChange: (valor: string) => void }) {
-  return <label className="campo"><span className="etiqueta">{nombre}</span><input value={valor} onChange={(e) => onChange(e.target.value)} /></label>;
+function Campo({
+  nombre,
+  valor,
+  onChange,
+  clase = "",
+}: {
+  nombre: string;
+  valor: string;
+  onChange: (valor: string) => void;
+  clase?: string;
+}) {
+  return (
+    <label className={`campo ${clase}`}>
+      <span className="etiqueta">{nombre}</span>
+      <input value={valor} onChange={(e) => onChange(e.target.value)} />
+    </label>
+  );
 }
 
 function Impuestos({ proveedorId, porcentaje, onPorcentaje }: { proveedorId: string; porcentaje: number; onPorcentaje: (valor: number) => void }) {
@@ -157,14 +237,22 @@ function Impuestos({ proveedorId, porcentaje, onPorcentaje }: { proveedorId: str
     void supabase().from("impuestos_proveedor").select("id, nombre, porcentaje").eq("proveedor_id", proveedorId).then(({ data }) => setFilas((data ?? []) as typeof filas));
   }, [proveedorId]);
   return (
-    <div className="max-w-lg space-y-3">
-      <label className="campo"><span className="etiqueta">IVA de las facturas nuevas (%)</span><input value={porcentaje} onChange={(e) => onPorcentaje(Number(e.target.value))} /></label>
-      <p className="text-[#3e5552]">Una factura ya guardada conserva el porcentaje con el que se grabó.</p>
-      <table className="tabla"><tbody>{filas.map((fila) => <tr key={fila.id}><td>{fila.nombre}</td><td>{fila.porcentaje}%</td></tr>)}</tbody></table>
-      <div className="flex gap-2">
+    <div className="ficha-bloque ficha-bloque-angosto space-y-3">
+      <Campo nombre="IVA de las facturas nuevas (%)" valor={String(porcentaje)} onChange={(v) => onPorcentaje(Number(v))} />
+      <p className="ficha-ayuda">Una factura ya guardada conserva el porcentaje con el que se grabó.</p>
+      <div className="tabla-scroll">
+        <table className="tabla ficha-tabla">
+          <thead><tr><th>Impuesto</th><th>%</th></tr></thead>
+          <tbody>
+            {filas.length === 0 && <tr><td colSpan={2}>Sin impuestos adicionales.</td></tr>}
+            {filas.map((fila) => <tr key={fila.id}><td>{fila.nombre}</td><td>{fila.porcentaje}%</td></tr>)}
+          </tbody>
+        </table>
+      </div>
+      <div className="ficha-inline">
         <input placeholder="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-        <input className="w-24" value={extra} onChange={(e) => setExtra(e.target.value)} />
-        <button className="btn" onClick={async () => {
+        <input className="ficha-input-chico" value={extra} onChange={(e) => setExtra(e.target.value)} />
+        <button type="button" className="btn-barra" onClick={async () => {
           if (!nombre.trim()) return;
           await supabase().from("impuestos_proveedor").insert({ proveedor_id: proveedorId, nombre, porcentaje: Number(extra) });
           const { data } = await supabase().from("impuestos_proveedor").select("id, nombre, porcentaje").eq("proveedor_id", proveedorId);
@@ -189,17 +277,28 @@ function Productos({ proveedorId }: { proveedorId: string }) {
   }
   useEffect(() => { void recargar(); }, [proveedorId]);
   return (
-    <div className="space-y-3">
-      <input className="max-w-xs" placeholder="Filtrar" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
-      <table className="tabla">
-        <thead><tr><th>Producto</th><th>Unidad</th><th className="text-right">Precio neto</th></tr></thead>
-        <tbody>{visibles.map((fila) => <tr key={fila.id}><td>{fila.nombre}</td><td>{fila.unidad}</td><td className="text-right">{formatoPeso(fila.precio_neto)}</td></tr>)}</tbody>
-      </table>
-      <div className="flex flex-wrap gap-2">
-        <input className="max-w-xs" placeholder="Producto" value={nombre} onChange={(e) => setNombre(e.target.value)} />
-        <select className="w-32" value={unidad} onChange={(e) => setUnidad(e.target.value)}>{UNIDADES.map((u) => <option key={u}>{u}</option>)}</select>
-        <input className="w-32" placeholder="Precio neto" value={precio} onChange={(e) => setPrecio(e.target.value)} />
-        <button className="btn" onClick={async () => {
+    <div className="ficha-bloque space-y-3">
+      <input className="ficha-buscar" placeholder="Filtrar productos" value={filtro} onChange={(e) => setFiltro(e.target.value)} />
+      <div className="tabla-scroll">
+        <table className="tabla ficha-tabla">
+          <thead><tr><th>Producto</th><th>Unidad</th><th>Precio neto</th></tr></thead>
+          <tbody>
+            {visibles.length === 0 && <tr><td colSpan={3}>Sin productos.</td></tr>}
+            {visibles.map((fila) => (
+              <tr key={fila.id}>
+                <td>{fila.nombre}</td>
+                <td>{fila.unidad}</td>
+                <td>{formatoPeso(fila.precio_neto)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="ficha-inline">
+        <input placeholder="Producto" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+        <select value={unidad} onChange={(e) => setUnidad(e.target.value)}>{UNIDADES.map((u) => <option key={u}>{u}</option>)}</select>
+        <input className="ficha-input-chico" placeholder="Precio" value={precio} onChange={(e) => setPrecio(e.target.value)} />
+        <button type="button" className="btn-barra" onClick={async () => {
           if (!nombre.trim()) return;
           await supabase().from("productos").insert({ proveedor_id: proveedorId, nombre, unidad, precio_neto: Number(precio) || 0 });
           setNombre(""); setPrecio("");
@@ -216,16 +315,31 @@ function Facturas({ proveedorId }: { proveedorId: string }) {
     void supabase().from("facturas").select("id, fecha_ingreso, numero, neto_calculado, iva_calculado, total_oficial, saldo, estado").eq("proveedor_id", proveedorId).order("fecha_ingreso", { ascending: false }).then(({ data }) => setFilas((data ?? []) as typeof filas));
   }, [proveedorId]);
   return (
-    <table className="tabla">
-      <thead><tr><th>Ingreso</th><th>Número</th><th>Neto</th><th>IVA</th><th>Total</th><th>Saldo</th><th>Estado</th></tr></thead>
-      <tbody>
-        {filas.map((fila) => (
-          <tr key={fila.id} onDoubleClick={() => { window.location.href = `/facturas/${fila.id}`; }}>
-            <td>{fechaCorta(fila.fecha_ingreso)}</td><td>{fila.numero}</td><td>{formatoPeso(fila.neto_calculado)}</td><td>{formatoPeso(fila.iva_calculado)}</td><td>{formatoPeso(fila.total_oficial)}</td><td>{formatoPeso(fila.saldo)}</td><td>{estadoVisible(fila.estado)}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="ficha-bloque">
+      <div className="tabla-scroll">
+        <table className="tabla ficha-tabla">
+          <thead>
+            <tr>
+              <th>Ingreso</th><th>Número</th><th>Neto</th><th>IVA</th><th>Total</th><th>Saldo</th><th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filas.length === 0 && <tr><td colSpan={7}>Sin facturas.</td></tr>}
+            {filas.map((fila) => (
+              <tr key={fila.id} onDoubleClick={() => { window.location.href = `/facturas/${fila.id}`; }}>
+                <td>{fechaCorta(fila.fecha_ingreso)}</td>
+                <td>{fila.numero}</td>
+                <td>{formatoPeso(fila.neto_calculado)}</td>
+                <td>{formatoPeso(fila.iva_calculado)}</td>
+                <td>{formatoPeso(fila.total_oficial)}</td>
+                <td className={fila.saldo > 0 ? "saldo-rojo" : ""}>{formatoPeso(fila.saldo)}</td>
+                <td>{estadoVisible(fila.estado)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
@@ -236,12 +350,29 @@ function Cuenta({ proveedorId }: { proveedorId: string }) {
   }, [proveedorId]);
   const saldo = filas.reduce((suma, fila) => suma + Number(fila.saldo), 0);
   return (
-    <div>
-      <table className="tabla">
-        <thead><tr><th>Fecha</th><th>Factura</th><th className="text-right">Cargo</th><th className="text-right">Abono</th><th className="text-right">Saldo</th></tr></thead>
-        <tbody>{filas.map((fila) => <tr key={fila.id}><td>{fechaCorta(fila.fecha_ingreso)}</td><td>{fila.numero}</td><td className="text-right">{formatoPeso(fila.total_oficial)}</td><td className="text-right">{formatoPeso(fila.abonado)}</td><td className="text-right">{formatoPeso(fila.saldo)}</td></tr>)}</tbody>
-      </table>
-      <p className="mt-2 text-right font-semibold">Saldo {formatoPeso(saldo)}</p>
+    <div className="ficha-bloque">
+      <div className="tabla-scroll">
+        <table className="tabla ficha-tabla">
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Factura</th><th>Cargo</th><th>Abono</th><th>Saldo</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filas.length === 0 && <tr><td colSpan={5}>Sin movimientos.</td></tr>}
+            {filas.map((fila) => (
+              <tr key={fila.id}>
+                <td>{fechaCorta(fila.fecha_ingreso)}</td>
+                <td>{fila.numero}</td>
+                <td>{formatoPeso(fila.total_oficial)}</td>
+                <td>{formatoPeso(fila.abonado)}</td>
+                <td className={fila.saldo > 0 ? "saldo-rojo" : ""}>{formatoPeso(fila.saldo)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="ficha-saldo">Saldo {formatoPeso(saldo)}</p>
     </div>
   );
 }
