@@ -1030,6 +1030,96 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
   overflow: auto;
 }
 
+.foto-pantalla {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+  background: var(--fondo);
+}
+.foto-panel {
+  display: flex;
+  width: min(980px, 100%);
+  min-height: 0;
+  margin: 0 auto;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--linea);
+  border-radius: 4px;
+  background: #fff;
+}
+.foto-cuerpo {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: 260px minmax(0, 1fr);
+}
+.foto-lista {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 8px;
+  border-right: 1px solid var(--linea);
+  background: #f7f8fd;
+  padding: 12px;
+}
+.foto-tomar {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.foto-tomar input { display: none; }
+.foto-lista-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+.foto-item {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 2px;
+  border: 0;
+  border-bottom: 1px solid var(--linea);
+  background: transparent;
+  padding: 8px 4px;
+  text-align: left;
+}
+.foto-item.activa { background: #eceefe; }
+.foto-item span,
+.foto-item em {
+  color: #6b7289;
+  font-size: 11px;
+  font-style: normal;
+}
+.foto-detalle {
+  min-height: 0;
+  overflow: auto;
+  padding: 14px;
+}
+.foto-vista {
+  display: block;
+  max-height: 280px;
+  width: 100%;
+  object-fit: contain;
+  border: 1px solid var(--linea);
+  background: #f7f8fd;
+}
+.foto-resumen {
+  margin: 12px 0;
+  white-space: pre-wrap;
+  color: #12141c;
+  font-family: inherit;
+  font-size: 14px;
+}
+.foto-acciones {
+  display: flex;
+  gap: 8px;
+}
+
 .pendientes-vacio {
   margin: 0;
   padding: 8px 4px;
@@ -1179,6 +1269,12 @@ input:disabled, textarea:disabled, select:disabled { background: #f3f5f5; color:
     border-radius: 0;
     box-shadow: none;
   }
+  .foto-pantalla { padding: 0; }
+  .foto-panel { width: 100%; border: 0; }
+  .foto-cuerpo { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  .foto-lista { border-right: 0; border-bottom: 1px solid var(--linea); }
+  .foto-lista-scroll { max-height: 180px; }
+
   .pago-pantalla { overflow: auto; }
   .pago-cuerpo,
   .pago-cuerpo-ancho {

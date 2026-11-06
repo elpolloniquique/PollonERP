@@ -1,92 +1,106 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { leerTextoFactura } from "@/lib/lectura";
-import { fechasDeIngreso } from "@/lib/fechas";
+import { descartarFoto, grabarFoto, guardarLectura } from "@/lib/facturaFoto";
+import { supabaseServicio } from "@/lib/supabaseServidor";
+
+export const runtime = "nodejs";
+
+/**
+ * Bot de Telegram, sin costo de licencia:
+ * 1. En Telegram abra @BotFather, envíe /newbot y copie el token en TELEGRAM_BOT_TOKEN.
+ * 2. En .env.local agregue GEMINI_API_KEY (Google AI Studio, cuota gratis) y SUPABASE_SERVICE_ROLE_KEY.
+ * 3. Ejecute supabase/fotos-lectura.sql en el SQL Editor de Supabase.
+ * 4. Con el sitio publicado, registre el webhook:
+ *    https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://SU-DOMINIO/api/telegram
+ * El mismo grabado lo usa el celular en /fotos.
+ */
+
+async function responder(token: string, chat: number | string, texto: string) {
+  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chat, text: texto }),
+  });
+}
 
 export async function POST(request: Request) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!token || !clave || !url) return NextResponse.json({ error: "Faltan el token del bot o la clave de servicio en el servidor." }, { status: 503 });
-  const cuerpo = await request.json();
-  const mensaje = cuerpo.message;
-  const chat = mensaje?.chat?.id;
-  const responder = (texto: string) => fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chat, text: texto }),
-  });
-  const supabase = createClient(url, clave);
-  const texto = String(mensaje?.text ?? "");
-  if (/^si$/i.test(texto.trim())) {
-    const pendiente = await supabase.from("fotos_factura").select("*").eq("estado", "borrador").order("creado_en", { ascending: false }).limit(1).maybeSingle();
-    const foto = pendiente.data;
-    if (!foto?.cierra) {
-      await responder("La lectura no cierra neto, IVA y total. No se guardó.");
+  if (!token || !clave || !url) return NextResponse.json({ error: "Faltan el token del bot o la clave de servicio." }, { status: 503 });
+
+  const cuerpo = await request.json().catch(() => null);
+  const mensaje = cuerpo?.message;
+  const chat = mensaje?.chat?.id as number | undefined;
+  if (!chat) return NextResponse.json({ ok: true });
+
+  const db = supabaseServicio();
+  const texto = String(mensaje?.text ?? "").trim();
+
+  if (/^si$/i.test(texto) || /^no$/i.test(texto)) {
+    const pendiente = await db.from("fotos_factura")
+      .select("id")
+      .eq("origen", "telegram")
+      .eq("estado", "borrador")
+      .eq("telegram_chat", String(chat))
+      .order("creado_en", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!pendiente.data) {
+      await responder(token, chat, "No hay una factura pendiente de confirmar.");
       return NextResponse.json({ ok: true });
     }
-    if (!foto.proveedor_id) {
-      await supabase.from("fotos_factura").update({ estado: "sin_proveedor" }).eq("id", foto.id);
-      await responder("El proveedor no existe. La foto quedó en la bandeja para asignarlo.");
-      return NextResponse.json({ ok: true });
-    }
-    const proveedor = await supabase.from("proveedores").select("dias_credito, porcentaje_iva").eq("id", foto.proveedor_id).single();
-    const ingreso = foto.fecha || new Date().toISOString().slice(0, 10);
-    const fechas = fechasDeIngreso(ingreso, Number(proveedor.data?.dias_credito ?? 0));
-    const creada = await supabase.from("facturas").insert({
-      empresa_id: foto.empresa_id,
-      proveedor_id: foto.proveedor_id,
-      numero: foto.numero || `TG-${Date.now()}`,
-      fecha_ingreso: ingreso,
-      fecha_emision: fechas.emision,
-      fecha_vencimiento: fechas.vencimiento,
-      porcentaje_iva: proveedor.data?.porcentaje_iva ?? 19,
-      neto_calculado: foto.neto,
-      iva_calculado: foto.iva,
-      total_calculado: Number(foto.neto) + Number(foto.iva),
-      total_oficial: foto.total,
-      ajuste_redondeo: Number(foto.total) - (Number(foto.neto) + Number(foto.iva)),
-      origen: "telegram",
-    }).select("id").single();
-    if (creada.data) {
-      await supabase.from("factura_lineas").insert({
-        factura_id: creada.data.id, orden: 0, codigo: "", descripcion: "Según lectura", unidad: "Unidad",
-        cantidad: 1, precio_neto_unitario: foto.neto, descuento_porcentaje: 0, aplica_iva: Number(foto.iva) > 0,
-        base: foto.neto, neto_linea: foto.neto, iva_linea: foto.iva, total_linea: Number(foto.neto) + Number(foto.iva),
-      });
-      await supabase.from("fotos_factura").update({ estado: "confirmada" }).eq("id", foto.id);
-      await responder("Factura creada. Revísela en el sistema.");
+    try {
+      if (/^no$/i.test(texto)) {
+        await descartarFoto(db, pendiente.data.id);
+        await responder(token, chat, "Foto descartada. No se grabó la factura.");
+      } else {
+        const aviso = await grabarFoto(db, pendiente.data.id);
+        await responder(token, chat, aviso);
+      }
+    } catch (error) {
+      const aviso = error instanceof Error ? error.message : "No se pudo grabar.";
+      await responder(token, chat, aviso);
     }
     return NextResponse.json({ ok: true });
   }
 
-  const fotoId = mensaje?.photo?.at(-1)?.file_id;
-  if (!fotoId || !chat) return NextResponse.json({ ok: true });
-  const archivo = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fotoId}`).then((respuesta) => respuesta.json());
-  const rutaTelegram = archivo.result?.file_path as string | undefined;
-  if (!rutaTelegram) return NextResponse.json({ ok: true });
-  const binario = await fetch(`https://api.telegram.org/file/bot${token}/${rutaTelegram}`).then((respuesta) => respuesta.arrayBuffer());
-  const { createWorker } = await import("tesseract.js");
-  const worker = await createWorker("spa");
-  const leido = await worker.recognize(Buffer.from(binario));
-  await worker.terminate();
-  const lectura = leerTextoFactura(leido.data.text);
-  const empresa = await supabase.from("empresas").select("id").limit(1).maybeSingle();
-  const ruta = `${empresa.data?.id ?? "telegram"}/${crypto.randomUUID()}.jpg`;
-  await supabase.storage.from("facturas-fotos").upload(ruta, Buffer.from(binario), { contentType: "image/jpeg" });
-  let proveedorId: string | null = null;
-  if (lectura.rut) {
-    const limpio = lectura.rut.replace(/\./g, "");
-    const proveedor = await supabase.from("proveedores").select("id").eq("rut", limpio).maybeSingle();
-    proveedorId = proveedor.data?.id ?? null;
-  }
-  if (empresa.data) {
-    await supabase.from("fotos_factura").insert({
-      empresa_id: empresa.data.id, ruta, origen: "telegram", estado: proveedorId ? "borrador" : "sin_proveedor",
-      proveedor_id: proveedorId, rut_leido: lectura.rut, numero: lectura.numero, fecha: lectura.fecha || null,
-      neto: lectura.neto, iva: lectura.iva, total: lectura.total, cierra: lectura.cierra, resumen: lectura.resumen,
+  const documento = mensaje?.document as { file_id?: string; mime_type?: string } | undefined;
+  const fotoId = mensaje?.photo?.at(-1)?.file_id as string | undefined;
+  const archivoId = fotoId || documento?.file_id;
+  const mime = fotoId ? "image/jpeg" : (documento?.mime_type ?? "");
+  const aceptado = Boolean(fotoId) || mime.startsWith("image/") || mime === "application/pdf";
+  if (!archivoId || !aceptado) return NextResponse.json({ ok: true });
+
+  try {
+    const archivo = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${archivoId}`).then((respuesta) => respuesta.json());
+    const rutaTelegram = archivo.result?.file_path as string | undefined;
+    if (!rutaTelegram) {
+      await responder(token, chat, "No pude descargar ese archivo. Envíe la foto de nuevo.");
+      return NextResponse.json({ ok: true });
+    }
+    const binario = Buffer.from(await fetch(`https://api.telegram.org/file/bot${token}/${rutaTelegram}`).then((respuesta) => respuesta.arrayBuffer()));
+    const empresa = await db.from("empresas").select("id, tolerancia_pesos").limit(1).maybeSingle();
+    if (!empresa.data) {
+      await responder(token, chat, "Todavía no hay una empresa en el sistema.");
+      return NextResponse.json({ ok: true });
+    }
+    const extension = mime === "application/pdf" ? "pdf" : "jpg";
+    const ruta = `${empresa.data.id}/${crypto.randomUUID()}.${extension}`;
+    const subida = await db.storage.from("facturas-fotos").upload(ruta, binario, { contentType: mime || "image/jpeg" });
+    if (subida.error) throw new Error(subida.error.message);
+    const resultado = await guardarLectura(db, {
+      empresaId: empresa.data.id,
+      ruta,
+      origen: "telegram",
+      bytes: binario,
+      mime: mime || "image/jpeg",
+      telegramChat: String(chat),
+      tolerancia: Number(empresa.data.tolerancia_pesos ?? 5),
     });
+    await responder(token, chat, resultado.resumen);
+  } catch (error) {
+    const aviso = error instanceof Error ? error.message : "No se pudo leer la foto.";
+    await responder(token, chat, aviso);
   }
-  await responder(`${lectura.resumen}\n\nResponda SI para crear la factura si el proveedor existe y la lectura cierra.`);
   return NextResponse.json({ ok: true });
 }
