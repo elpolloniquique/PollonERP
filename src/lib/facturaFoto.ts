@@ -54,7 +54,7 @@ Si un dato no se lee, usa texto vacío o 0. No inventes un proveedor ni un folio
 export async function leerConGemini(bytes: Buffer, mime: string): Promise<LecturaGemini> {
   const clave = process.env.GEMINI_API_KEY;
   if (!clave) throw new Error("Falta GEMINI_API_KEY en el servidor.");
-  const modelo = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+  const modelo = process.env.GEMINI_MODEL || "gemini-3.8-flash";
   const respuesta = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${clave}`,
     {
